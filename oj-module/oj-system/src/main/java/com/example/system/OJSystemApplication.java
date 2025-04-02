@@ -1,2 +1,11 @@
-package com.example.system;public class OJSystemApplication {
+package com.example.system;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class OJSystemApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(OJSystemApplication.class, args);
+    }
 }

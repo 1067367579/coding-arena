@@ -1,11 +1,11 @@
-package com.example.system;
+package com.example.friend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class OJSystemApplication {
+public class OJFriendApplication {
     public static void main(String[] args) {
-        SpringApplication.run(OJSystemApplication.class, args);
+        SpringApplication.run(OJFriendApplication.class, args);
     }
 }
