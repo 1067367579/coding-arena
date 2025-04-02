@@ -1,0 +1,7 @@
+server:
+  port: 9092
+# Spring
+spring:
+  application:
+    # 应⽤名称
+    name: oj-system
