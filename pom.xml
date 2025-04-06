@@ -18,6 +18,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <module>oj-module</module>
         <module>oj-module/oj-system</module>
         <module>oj-module/oj-friend</module>
+        <module>oj-common</module>
     </modules>
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -25,6 +26,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <spring-boot.version>3.0.1</spring-boot.version>
         <spring-cloud-alibaba.version>2022.0.0.0-RC2</spring-cloud-alibaba.version>
         <spring-cloud.version>2022.0.0</spring-cloud.version>
+        <springdoc-api.version>2.2.0</springdoc-api.version>
     </properties>
     <dependencies>
         <!-- bootstrap 启动器 -->
@@ -35,6 +37,11 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
     </dependencies>
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>3.5.5</version>
+            </dependency>
             <!-- SpringCloud Alibaba 微服务 -->
             <dependency>
                 <groupId>com.alibaba.cloud</groupId>
@@ -58,6 +65,16 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
                 <version>${spring-boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc-api.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
