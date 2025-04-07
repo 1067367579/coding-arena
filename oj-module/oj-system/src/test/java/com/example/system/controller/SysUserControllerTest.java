@@ -4,13 +4,17 @@ import com.example.system.OJSystemApplication;
 import com.example.system.entity.SysUser;
 import com.example.system.mapper.SysUserMapper;
 import com.example.system.utils.BCryptUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(classes = OJSystemApplication.class)
+@Slf4j
 public class SysUserControllerTest {
 
     @Autowired
@@ -35,5 +39,12 @@ public class SysUserControllerTest {
         String encodedPassword = BCryptUtils.encryptPassword("123456");
         sysUser.setPassword(encodedPassword);
         sysUserMapper.updateById(sysUser);
+    }
+
+    @Test
+    public void log() {
+        log.info("我是info级别的日志");
+        log.error("我是error级别的日志");
+        log.info(UUID.randomUUID().toString());
     }
 }

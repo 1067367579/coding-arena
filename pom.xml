@@ -19,6 +19,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <module>oj-module/oj-system</module>
         <module>oj-module/oj-friend</module>
         <module>oj-common</module>
+        <module>oj-gateway</module>
     </modules>
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

@@ -1,0 +1,74 @@
+12:14:18.862 [main] INFO  c.a.n.c.u.ParamUtil - [<clinit>,87] - [settings] [req-serv] nacos-server port:8848
+12:14:18.862 [main] INFO  c.a.n.c.u.ParamUtil - [<clinit>,98] - [settings] [http-client] connect timeout:1000
+12:14:18.863 [main] INFO  c.a.n.c.u.ParamUtil - [<clinit>,105] - PER_TASK_CONFIG_SIZE: 3000.0
+12:14:18.881 [main] INFO  c.a.n.p.a.s.c.ClientAuthPluginManager - [init,56] - [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
+12:14:18.881 [main] INFO  c.a.n.p.a.s.c.ClientAuthPluginManager - [init,56] - [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
+12:14:18.897 [main] INFO  c.a.n.c.a.r.i.CredentialWatcher - [loadCredential,165] - null No credential found
+12:14:18.940 [main] INFO  c.a.n.c.c.i.LocalConfigInfoProcessor - [<clinit>,63] - LOCAL_SNAPSHOT_PATH:/Users/lujingxiang/nacos/config
+12:14:18.941 [main] INFO  c.a.n.c.r.client - [lambda$createClient$0,108] - [RpcClientFactory] create a new rpc client of e21192db-5a36-4f1c-bcba-7f1a4495a185_config-0
+12:14:18.948 [main] INFO  c.a.n.c.r.client - [printIfInfoEnabled,63] - [e21192db-5a36-4f1c-bcba-7f1a4495a185_config-0] Register server push request handler:com.alibaba.nacos.client.config.impl.ClientWorker$ConfigRpcTransportClient$$Lambda$850/0x000000c801347318
+12:14:18.948 [main] INFO  c.a.n.c.r.client - [printIfInfoEnabled,63] - [e21192db-5a36-4f1c-bcba-7f1a4495a185_config-0] Register server push request handler:com.alibaba.nacos.client.config.impl.ClientWorker$ConfigRpcTransportClient$$Lambda$851/0x000000c801347748
+12:14:18.948 [main] INFO  c.a.n.c.r.client - [printIfInfoEnabled,63] - [e21192db-5a36-4f1c-bcba-7f1a4495a185_config-0] Registry connection listener to current client:com.alibaba.nacos.client.config.impl.ClientWorker$ConfigRpcTransportClient$1
+12:14:18.948 [main] INFO  c.a.n.c.r.client - [printIfInfoEnabled,63] - [e21192db-5a36-4f1c-bcba-7f1a4495a185_config-0] RpcClient init, ServerListFactory = com.alibaba.nacos.client.config.impl.ClientWorker$ConfigRpcTransportClient$2
+12:14:18.951 [main] INFO  c.a.n.c.r.client - [printIfInfoEnabled,63] - [e21192db-5a36-4f1c-bcba-7f1a4495a185_config-0] Try to connect to server on start up, server: {serverIp = '114.132.235.199', server main port = 8848}
+12:14:18.967 [main] INFO  c.a.n.c.r.c.g.GrpcClient - [createNewManagedChannel,182] - grpc client connection server:114.132.235.199 ip,serverPort:9848,grpcTslConfig:{"sslProvider":"OPENSSL","enableTls":false,"mutualAuthEnable":false,"trustAll":false}
+12:14:19.333 [main] INFO  c.a.n.c.r.client - [printIfInfoEnabled,63] - [e21192db-5a36-4f1c-bcba-7f1a4495a185_config-0] Success to connect to server [114.132.235.199:8848] on start up, connectionId = 1743999259208_113.77.102.60_62897
+12:14:19.333 [com.alibaba.nacos.client.remote.worker] INFO  c.a.n.c.r.client - [printIfInfoEnabled,63] - [e21192db-5a36-4f1c-bcba-7f1a4495a185_config-0] Notify connected event to listeners.
+12:14:19.333 [com.alibaba.nacos.client.remote.worker] INFO  c.a.n.c.c.i.ClientWorker - [onConnected,639] - [e21192db-5a36-4f1c-bcba-7f1a4495a185_config-0] Connected,notify listen context...
+12:14:19.333 [main] INFO  c.a.n.c.r.client - [printIfInfoEnabled,63] - [e21192db-5a36-4f1c-bcba-7f1a4495a185_config-0] Register server push request handler:com.alibaba.nacos.common.remote.client.RpcClient$ConnectResetRequestHandler
+12:14:19.334 [main] INFO  c.a.n.c.r.client - [printIfInfoEnabled,63] - [e21192db-5a36-4f1c-bcba-7f1a4495a185_config-0] Register server push request handler:com.alibaba.nacos.common.remote.client.RpcClient$$Lambda$869/0x000000c80149c1a8
+12:14:19.356 [main] INFO  c.a.n.c.c.i.Limiter - [<clinit>,62] - limitTime:5.0
+12:14:19.413 [main] INFO  c.a.n.c.c.u.JvmUtil - [<clinit>,54] - isMultiInstance:false
+12:14:19.417 [main] INFO  o.s.c.b.c.PropertySourceBootstrapConfiguration - [initialize,108] - Located property source: [BootstrapPropertySource {name='bootstrapProperties-oj-system-local.yaml,DEFAULT_GROUP'}, BootstrapPropertySource {name='bootstrapProperties-oj-system.yaml,DEFAULT_GROUP'}, BootstrapPropertySource {name='bootstrapProperties-oj-system,DEFAULT_GROUP'}]
+12:14:19.425 [main] INFO  c.e.s.c.SysUserControllerTest - [logStartupProfileInfo,636] - The following 1 profile is active: "local"
+12:14:19.691 [main] INFO  o.s.c.c.s.GenericScope - [setSerializationId,282] - BeanFactory id=c34f831d-b6d7-3951-af81-d53c47cec58e
+12:14:20.096 [main] INFO  c.e.s.c.SysUserControllerTest - [logStarted,57] - Started SysUserControllerTest in 1.481 seconds (process running for 1.904)
+12:14:20.098 [main] INFO  c.a.n.c.c.i.CacheData - [<clinit>,67] - nacos.cache.data.init.snapshot = true 
+12:14:20.098 [main] INFO  c.a.n.c.c.i.ClientWorker - [addCacheDataIfAbsent,380] - [fixed-77884dbb-0be4-491b-b2c4-f3ffc7020a4b-114.132.235.199_8848] [subscribe] oj-system-local.yaml+DEFAULT_GROUP+77884dbb-0be4-491b-b2c4-f3ffc7020a4b
+12:14:20.101 [main] INFO  c.a.n.c.c.i.CacheData - [addListener,197] - [fixed-77884dbb-0be4-491b-b2c4-f3ffc7020a4b-114.132.235.199_8848] [add-listener] ok, tenant=77884dbb-0be4-491b-b2c4-f3ffc7020a4b, dataId=oj-system-local.yaml, group=DEFAULT_GROUP, cnt=1
+12:14:20.101 [main] INFO  c.a.c.n.r.NacosContextRefresher - [registerNacosListener,129] - [Nacos Config] Listening config: dataId=oj-system-local.yaml, group=DEFAULT_GROUP
+12:14:20.101 [main] INFO  c.a.n.c.c.i.ClientWorker - [addCacheDataIfAbsent,380] - [fixed-77884dbb-0be4-491b-b2c4-f3ffc7020a4b-114.132.235.199_8848] [subscribe] oj-system+DEFAULT_GROUP+77884dbb-0be4-491b-b2c4-f3ffc7020a4b
+12:14:20.101 [main] INFO  c.a.n.c.c.i.CacheData - [addListener,197] - [fixed-77884dbb-0be4-491b-b2c4-f3ffc7020a4b-114.132.235.199_8848] [add-listener] ok, tenant=77884dbb-0be4-491b-b2c4-f3ffc7020a4b, dataId=oj-system, group=DEFAULT_GROUP, cnt=1
+12:14:20.101 [main] INFO  c.a.c.n.r.NacosContextRefresher - [registerNacosListener,129] - [Nacos Config] Listening config: dataId=oj-system, group=DEFAULT_GROUP
+12:14:20.101 [main] INFO  c.a.n.c.c.i.ClientWorker - [addCacheDataIfAbsent,380] - [fixed-77884dbb-0be4-491b-b2c4-f3ffc7020a4b-114.132.235.199_8848] [subscribe] oj-system.yaml+DEFAULT_GROUP+77884dbb-0be4-491b-b2c4-f3ffc7020a4b
+12:14:20.101 [main] INFO  c.a.n.c.c.i.CacheData - [addListener,197] - [fixed-77884dbb-0be4-491b-b2c4-f3ffc7020a4b-114.132.235.199_8848] [add-listener] ok, tenant=77884dbb-0be4-491b-b2c4-f3ffc7020a4b, dataId=oj-system.yaml, group=DEFAULT_GROUP, cnt=1
+12:14:20.101 [main] INFO  c.a.c.n.r.NacosContextRefresher - [registerNacosListener,129] - [Nacos Config] Listening config: dataId=oj-system.yaml, group=DEFAULT_GROUP
+12:14:20.252 [main] INFO  c.e.s.c.SysUserControllerTest - [log,46] - 我是info级别的日志
+12:14:20.252 [main] INFO  c.e.s.c.SysUserControllerTest - [log,48] - b4df8803-0b16-4186-9984-7ec622d439ad
+22:57:03.412 [main] INFO  c.a.n.c.u.ParamUtil - [<clinit>,87] - [settings] [req-serv] nacos-server port:8848
+22:57:03.412 [main] INFO  c.a.n.c.u.ParamUtil - [<clinit>,98] - [settings] [http-client] connect timeout:1000
+22:57:03.413 [main] INFO  c.a.n.c.u.ParamUtil - [<clinit>,105] - PER_TASK_CONFIG_SIZE: 3000.0
+22:57:03.433 [main] INFO  c.a.n.p.a.s.c.ClientAuthPluginManager - [init,56] - [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
+22:57:03.434 [main] INFO  c.a.n.p.a.s.c.ClientAuthPluginManager - [init,56] - [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
+22:57:03.453 [main] INFO  c.a.n.c.a.r.i.CredentialWatcher - [loadCredential,165] - null No credential found
+22:57:03.499 [main] INFO  c.a.n.c.c.i.LocalConfigInfoProcessor - [<clinit>,63] - LOCAL_SNAPSHOT_PATH:/Users/lujingxiang/nacos/config
+22:57:03.502 [main] INFO  c.a.n.c.r.client - [lambda$createClient$0,108] - [RpcClientFactory] create a new rpc client of 2152b06c-7f4d-499d-8f0f-ad91e558b9c8_config-0
+22:57:03.509 [main] INFO  c.a.n.c.r.client - [printIfInfoEnabled,63] - [2152b06c-7f4d-499d-8f0f-ad91e558b9c8_config-0] Register server push request handler:com.alibaba.nacos.client.config.impl.ClientWorker$ConfigRpcTransportClient$$Lambda$850/0x0000000601337658
+22:57:03.510 [main] INFO  c.a.n.c.r.client - [printIfInfoEnabled,63] - [2152b06c-7f4d-499d-8f0f-ad91e558b9c8_config-0] Register server push request handler:com.alibaba.nacos.client.config.impl.ClientWorker$ConfigRpcTransportClient$$Lambda$851/0x0000000601337a88
+22:57:03.510 [main] INFO  c.a.n.c.r.client - [printIfInfoEnabled,63] - [2152b06c-7f4d-499d-8f0f-ad91e558b9c8_config-0] Registry connection listener to current client:com.alibaba.nacos.client.config.impl.ClientWorker$ConfigRpcTransportClient$1
+22:57:03.510 [main] INFO  c.a.n.c.r.client - [printIfInfoEnabled,63] - [2152b06c-7f4d-499d-8f0f-ad91e558b9c8_config-0] RpcClient init, ServerListFactory = com.alibaba.nacos.client.config.impl.ClientWorker$ConfigRpcTransportClient$2
+22:57:03.513 [main] INFO  c.a.n.c.r.client - [printIfInfoEnabled,63] - [2152b06c-7f4d-499d-8f0f-ad91e558b9c8_config-0] Try to connect to server on start up, server: {serverIp = '114.132.235.199', server main port = 8848}
+22:57:03.529 [main] INFO  c.a.n.c.r.c.g.GrpcClient - [createNewManagedChannel,182] - grpc client connection server:114.132.235.199 ip,serverPort:9848,grpcTslConfig:{"sslProvider":"OPENSSL","enableTls":false,"mutualAuthEnable":false,"trustAll":false}
+22:57:03.905 [main] INFO  c.a.n.c.r.client - [printIfInfoEnabled,63] - [2152b06c-7f4d-499d-8f0f-ad91e558b9c8_config-0] Success to connect to server [114.132.235.199:8848] on start up, connectionId = 1744037824042_218.17.207.115_6475
+22:57:03.907 [com.alibaba.nacos.client.remote.worker] INFO  c.a.n.c.r.client - [printIfInfoEnabled,63] - [2152b06c-7f4d-499d-8f0f-ad91e558b9c8_config-0] Notify connected event to listeners.
+22:57:03.907 [com.alibaba.nacos.client.remote.worker] INFO  c.a.n.c.c.i.ClientWorker - [onConnected,639] - [2152b06c-7f4d-499d-8f0f-ad91e558b9c8_config-0] Connected,notify listen context...
+22:57:03.907 [main] INFO  c.a.n.c.r.client - [printIfInfoEnabled,63] - [2152b06c-7f4d-499d-8f0f-ad91e558b9c8_config-0] Register server push request handler:com.alibaba.nacos.common.remote.client.RpcClient$ConnectResetRequestHandler
+22:57:03.907 [main] INFO  c.a.n.c.r.client - [printIfInfoEnabled,63] - [2152b06c-7f4d-499d-8f0f-ad91e558b9c8_config-0] Register server push request handler:com.alibaba.nacos.common.remote.client.RpcClient$$Lambda$869/0x00000006014bbd90
+22:57:03.930 [main] INFO  c.a.n.c.c.i.Limiter - [<clinit>,62] - limitTime:5.0
+22:57:03.968 [main] INFO  c.a.n.c.c.u.JvmUtil - [<clinit>,54] - isMultiInstance:false
+22:57:03.972 [main] INFO  o.s.c.b.c.PropertySourceBootstrapConfiguration - [initialize,108] - Located property source: [BootstrapPropertySource {name='bootstrapProperties-oj-system-local.yaml,DEFAULT_GROUP'}, BootstrapPropertySource {name='bootstrapProperties-oj-system.yaml,DEFAULT_GROUP'}, BootstrapPropertySource {name='bootstrapProperties-oj-system,DEFAULT_GROUP'}]
+22:57:03.980 [main] INFO  c.e.s.c.SysUserControllerTest - [logStartupProfileInfo,636] - The following 1 profile is active: "local"
+22:57:04.267 [main] INFO  o.s.c.c.s.GenericScope - [setSerializationId,282] - BeanFactory id=c34f831d-b6d7-3951-af81-d53c47cec58e
+22:57:04.692 [main] INFO  c.e.s.c.SysUserControllerTest - [logStarted,57] - Started SysUserControllerTest in 1.566 seconds (process running for 2.097)
+22:57:04.694 [main] INFO  c.a.n.c.c.i.CacheData - [<clinit>,67] - nacos.cache.data.init.snapshot = true 
+22:57:04.694 [main] INFO  c.a.n.c.c.i.ClientWorker - [addCacheDataIfAbsent,380] - [fixed-ff584b75-4fce-4648-a046-34fd21013463-114.132.235.199_8848] [subscribe] oj-system-local.yaml+DEFAULT_GROUP+ff584b75-4fce-4648-a046-34fd21013463
+22:57:04.697 [main] INFO  c.a.n.c.c.i.CacheData - [addListener,197] - [fixed-ff584b75-4fce-4648-a046-34fd21013463-114.132.235.199_8848] [add-listener] ok, tenant=ff584b75-4fce-4648-a046-34fd21013463, dataId=oj-system-local.yaml, group=DEFAULT_GROUP, cnt=1
+22:57:04.697 [main] INFO  c.a.c.n.r.NacosContextRefresher - [registerNacosListener,129] - [Nacos Config] Listening config: dataId=oj-system-local.yaml, group=DEFAULT_GROUP
+22:57:04.697 [main] INFO  c.a.n.c.c.i.ClientWorker - [addCacheDataIfAbsent,380] - [fixed-ff584b75-4fce-4648-a046-34fd21013463-114.132.235.199_8848] [subscribe] oj-system+DEFAULT_GROUP+ff584b75-4fce-4648-a046-34fd21013463
+22:57:04.697 [main] INFO  c.a.n.c.c.i.CacheData - [addListener,197] - [fixed-ff584b75-4fce-4648-a046-34fd21013463-114.132.235.199_8848] [add-listener] ok, tenant=ff584b75-4fce-4648-a046-34fd21013463, dataId=oj-system, group=DEFAULT_GROUP, cnt=1
+22:57:04.697 [main] INFO  c.a.c.n.r.NacosContextRefresher - [registerNacosListener,129] - [Nacos Config] Listening config: dataId=oj-system, group=DEFAULT_GROUP
+22:57:04.698 [main] INFO  c.a.n.c.c.i.ClientWorker - [addCacheDataIfAbsent,380] - [fixed-ff584b75-4fce-4648-a046-34fd21013463-114.132.235.199_8848] [subscribe] oj-system.yaml+DEFAULT_GROUP+ff584b75-4fce-4648-a046-34fd21013463
+22:57:04.698 [main] INFO  c.a.n.c.c.i.CacheData - [addListener,197] - [fixed-ff584b75-4fce-4648-a046-34fd21013463-114.132.235.199_8848] [add-listener] ok, tenant=ff584b75-4fce-4648-a046-34fd21013463, dataId=oj-system.yaml, group=DEFAULT_GROUP, cnt=1
+22:57:04.698 [main] INFO  c.a.c.n.r.NacosContextRefresher - [registerNacosListener,129] - [Nacos Config] Listening config: dataId=oj-system.yaml, group=DEFAULT_GROUP
+22:57:04.870 [main] INFO  c.e.s.c.SysUserControllerTest - [log,46] - 我是info级别的日志
+22:57:04.870 [main] INFO  c.e.s.c.SysUserControllerTest - [log,48] - 78331337-a7cf-46ef-95ba-62bdaf416be2
