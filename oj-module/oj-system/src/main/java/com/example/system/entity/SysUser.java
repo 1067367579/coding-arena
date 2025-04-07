@@ -4,9 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.core.domain.BaseEntity;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 
 @TableName("tb_sys_user")
@@ -18,4 +16,14 @@ public class SysUser extends BaseEntity {
     private String userAccount;
     private String password;
     private String nickName;
+
+    @Override
+    public String toString() {
+        return "SysUser{" +
+                "userId=" + userId +
+                ", userAccount='" + userAccount + '\'' +
+                ", password='" + password + '\'' +
+                ", nickName='" + nickName + '\'' +
+                "} " + super.toString();
+    }
 }

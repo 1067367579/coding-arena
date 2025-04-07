@@ -28,6 +28,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <spring-cloud-alibaba.version>2022.0.0.0-RC2</spring-cloud-alibaba.version>
         <spring-cloud.version>2022.0.0</spring-cloud.version>
         <springdoc-api.version>2.2.0</springdoc-api.version>
+        <fastjson.version>2.0.47</fastjson.version>
     </properties>
     <dependencies>
         <!-- bootstrap 启动器 -->

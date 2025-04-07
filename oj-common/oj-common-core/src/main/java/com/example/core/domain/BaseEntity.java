@@ -11,8 +11,12 @@ import java.time.LocalDateTime;
 public class BaseEntity implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
+
     private Long createBy;
+
     private LocalDateTime createTime;
+
     private Long updateBy;
+
     private LocalDateTime updateTime;
 }
