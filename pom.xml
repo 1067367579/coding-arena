@@ -16,8 +16,6 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <packaging>pom</packaging>
     <modules>
         <module>oj-module</module>
-        <module>oj-module/oj-system</module>
-        <module>oj-module/oj-friend</module>
         <module>oj-common</module>
         <module>oj-gateway</module>
     </modules>
@@ -29,6 +27,8 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <spring-cloud.version>2022.0.0</spring-cloud.version>
         <springdoc-api.version>2.2.0</springdoc-api.version>
         <fastjson.version>2.0.47</fastjson.version>
+        <jjwt.version>0.9.1</jjwt.version>
+        <jaxb-xml.version>2.4.0-b180830.0359</jaxb-xml.version>
     </properties>
     <dependencies>
         <!-- bootstrap 启动器 -->

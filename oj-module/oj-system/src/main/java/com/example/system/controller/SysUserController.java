@@ -32,7 +32,7 @@ public class SysUserController {
     @ApiResponse(responseCode = "3102",description = "用户不存在")
     @ApiResponse(responseCode = "3103",description = "用户名或密码错误")
     @ApiResponse(responseCode = "3104",description = "被拉入黑名单")
-    public Result<Void> login(@RequestBody LoginDTO loginDTO) {
+    public Result<String> login(@RequestBody LoginDTO loginDTO) {
         log.info("管理员用户登录：{}",loginDTO);
         return sysUserService.login(loginDTO);
     }

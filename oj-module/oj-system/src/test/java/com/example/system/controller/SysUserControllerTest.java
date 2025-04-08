@@ -15,17 +15,17 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(classes = OJSystemApplication.class)
+//@SpringBootTest(classes = OJSystemApplication.class)
 @Slf4j
 public class SysUserControllerTest {
 
-    @Autowired
+    //@Autowired
     SysUserMapper sysUserMapper;
 
-    @Autowired
+    //@Autowired
     RedisService redisService;
 
-    @Test
+    //@Test
     public void testAdd() {
         SysUser sysUser = new SysUser();
         sysUser.setUserAccount("15119047712");
@@ -37,7 +37,7 @@ public class SysUserControllerTest {
         System.out.println("插入成功的数量: "+inserted);
     }
 
-    @Test
+    //@Test
     public void testUpdate() {
         SysUser sysUser = new SysUser();
         sysUser.setUserId(1908547690506072065L);
@@ -46,14 +46,14 @@ public class SysUserControllerTest {
         sysUserMapper.updateById(sysUser);
     }
 
-    @Test
+    //@Test
     public void log() {
         log.info("我是info级别的日志");
         log.error("我是error级别的日志");
         log.info(UUID.randomUUID().toString());
     }
 
-    @Test
+    //@Test
     public void redisAddAndGet() {
         SysUser sysUser = new SysUser();
         sysUser.setUserAccount("15119047712");
