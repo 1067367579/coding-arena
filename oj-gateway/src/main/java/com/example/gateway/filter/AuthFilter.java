@@ -2,14 +2,13 @@ package com.example.gateway.filter;
 
 import com.alibaba.fastjson2.JSON;
 import com.example.common.redis.service.RedisService;
-
-import com.example.core.domain.LoginUser;
-import com.example.core.utils.JWTUtils;
 import com.example.core.constants.HttpConstants;
 import com.example.core.constants.JwtConstants;
 import com.example.core.constants.RedisConstants;
+import com.example.core.domain.LoginUser;
 import com.example.core.domain.Result;
 import com.example.core.enums.ResultCode;
+import com.example.core.utils.JWTUtils;
 import com.example.gateway.properties.IgnoreWhiteProperties;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;

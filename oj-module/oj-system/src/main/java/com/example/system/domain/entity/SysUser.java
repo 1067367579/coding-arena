@@ -4,7 +4,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.core.domain.BaseEntity;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 
 
 @TableName("tb_sys_user")

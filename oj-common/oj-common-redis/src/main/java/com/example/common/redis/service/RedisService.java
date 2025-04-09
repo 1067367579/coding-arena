@@ -6,6 +6,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -99,8 +100,6 @@ public class RedisService {
 //*************** 操作list结构 ****************
     /**
      * 获取list中存储数据数量
-     * @param key
-     * @return
      */
     public Long getListSize(final String key) {
         return redisTemplate.opsForList().size(key);
@@ -108,12 +107,6 @@ public class RedisService {
 
     /**
      * 获取list中指定范围数据
-     * @param key
-     * @param start
-     * @param end
-     * @param clazz
-     * @param <T>
-     * @return
      */
     public <T> List<T> getCacheListByRange(final String key, long start, long
             end, Class<T> clazz) {

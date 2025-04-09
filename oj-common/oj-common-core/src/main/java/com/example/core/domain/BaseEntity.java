@@ -2,7 +2,6 @@ package com.example.core.domain;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
-import lombok.Builder;
 import lombok.Data;
 
 import java.io.Serial;

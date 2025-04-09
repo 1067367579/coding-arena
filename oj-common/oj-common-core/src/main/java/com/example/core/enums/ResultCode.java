@@ -1,7 +1,6 @@
 package com.example.core.enums;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 
 @AllArgsConstructor
@@ -24,9 +23,9 @@ public enum ResultCode {
     FAILED_USER_BANNED (3104, "您已被列⼊⿊名单, 请联系管理员");
 
     //状态码
-    private int code;
+    private final int code;
     //对应的错误信息
-    private String msg;
+    private final String msg;
 
 
 }
