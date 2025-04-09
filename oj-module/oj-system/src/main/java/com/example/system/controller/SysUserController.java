@@ -1,5 +1,6 @@
 package com.example.system.controller;
 
+import com.example.core.controller.BaseController;
 import com.example.core.domain.Result;
 import com.example.system.entity.LoginDTO;
 import com.example.system.entity.SysUserDTO;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @Tag(name = "管理员接口") //描述接口组别
 @RequestMapping("/sys/user")
-public class SysUserController {
+public class SysUserController extends BaseController {
 
     @Autowired
     private SysUserService sysUserService;
@@ -43,9 +44,10 @@ public class SysUserController {
     @ApiResponse(responseCode = "2000",description = "服务繁忙")
     @ApiResponse(responseCode = "3002",description = "参数校验失败")
     @ApiResponse(responseCode = "3101",description = "用户已存在")
-    public Result<Void> addUser(@RequestBody SysUserDTO userDTO) {
+    public Result<?> addUser(@RequestBody SysUserDTO userDTO) {
         log.info("新增管理员用户:{}",userDTO);
-        return new Result<>();
+        int result = sysUserService.add(userDTO);
+        return responseByService(result);
     }
 
     @DeleteMapping("/delete/{userId}")
@@ -57,7 +59,7 @@ public class SysUserController {
     @ApiResponse(responseCode = "2000", description = "服务繁忙请稍后重试")
     @ApiResponse(responseCode = "3001", description = "未授权")
     @ApiResponse(responseCode = "3101", description = "⽤户不存在")
-    public Result<Void> deleteUser(@PathVariable Long userId) {
+    public Result<?> deleteUser(@PathVariable Long userId) {
         return null;
     }
 
@@ -66,7 +68,7 @@ public class SysUserController {
     @ApiResponse(responseCode = "1000",description = "操作成功")
     @ApiResponse(responseCode = "2000",description = "服务繁忙")
     @ApiResponse(responseCode = "3002",description = "参数校验失败")
-    public Result<Void> updateUser(@RequestBody SysUserDTO userDTO) {
+    public Result<?> updateUser(@RequestBody SysUserDTO userDTO) {
         return null;
     }
 

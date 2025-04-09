@@ -1,5 +1,6 @@
 package com.example.common.security.handler;
 
+import com.example.common.security.exception.ServiceException;
 import com.example.core.domain.Result;
 import com.example.core.enums.ResultCode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,9 +29,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public Result<?> handleRuntimeException(RuntimeException e, HttpServletRequest request) {
         String requestURI = request.getRequestURI();
-        log.error("请求资源:{}，发生异常：{}", requestURI, e.getMessage());
+        log.error("请求资源:{}，发生运行时异常：{}", requestURI, e.getMessage());
         return Result.fail(ResultCode.ERROR);
     }
+
+    /**
+     * 拦截业务异常
+     */
+    @ExceptionHandler(ServiceException.class)
+    public Result<?> handleServiceException(ServiceException e, HttpServletRequest request) {
+        String requestURI = request.getRequestURI();
+        log.error("请求资源:{}，发生业务异常：{}", requestURI, e.getResultCode().getMsg());
+        return Result.fail(e.getResultCode());
+    }
+
+
 
     /**
      * 拦截系统异常

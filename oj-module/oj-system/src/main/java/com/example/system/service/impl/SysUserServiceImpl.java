@@ -3,12 +3,14 @@ package com.example.system.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.common.redis.config.RedisConfig;
 import com.example.common.redis.service.RedisService;
+import com.example.common.security.exception.ServiceException;
 import com.example.common.security.service.TokenService;
 import com.example.core.constants.RedisConstants;
 import com.example.core.domain.Result;
 import com.example.core.enums.ResultCode;
 import com.example.system.entity.LoginDTO;
 import com.example.system.entity.SysUser;
+import com.example.system.entity.SysUserDTO;
 import com.example.system.mapper.SysUserMapper;
 import com.example.system.service.SysUserService;
 import com.example.system.utils.BCryptUtils;
@@ -16,7 +18,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @RefreshScope //nacos实时刷新
@@ -49,5 +56,29 @@ public class SysUserServiceImpl implements SysUserService {
         }
         return Result.ok(tokenService.createToken(user.getUserId(),
                 RedisConstants.LOGIN_IDENTITY_ADMIN,secret));
+    }
+
+    @Override
+    public int add(SysUserDTO userDTO) {
+        //todo 参数合法性校验 避免插入过长数据 导致数据库崩溃 不能完全依靠前端
+        //添加之前先要进行验证 数据库中是否已经有该用户名
+        if(!StringUtils.hasLength(userDTO.getUserAccount()) ||
+            !StringUtils.hasLength(userDTO.getPassword())) {
+            //自定义异常
+            throw new ServiceException(ResultCode.FAILED_PARAMS_VALIDATE);
+        }
+        //到数据库中查找
+        List<SysUser> userList = sysUserMapper.selectList(new LambdaQueryWrapper<SysUser>()
+                .eq(SysUser::getUserAccount,userDTO.getUserAccount()));
+        if(!CollectionUtils.isEmpty(userList)) {
+            //自定义异常
+            throw new ServiceException(ResultCode.AILED_USER_EXISTS);
+        }
+        //将DTO对象转换为实体
+        SysUser sysUser = new SysUser();
+        sysUser.setUserAccount(userDTO.getUserAccount());
+        sysUser.setPassword(userDTO.getPassword());
+        sysUser.setNickName("管理员"+ UUID.randomUUID().toString().substring(0,6));
+        return sysUserMapper.insert(sysUser);
     }
 }
