@@ -5,9 +5,17 @@ import com.example.core.domain.Result;
 import com.example.core.enums.ResultCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.util.CollectionUtils;
+import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.Collection;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 @Slf4j
@@ -55,6 +63,28 @@ public class GlobalExceptionHandler {
         return Result.fail(ResultCode.ERROR);
     }
 
+    /**
+     * 拦截参数校验异常
+     */
+    @ExceptionHandler(BindException.class)
+    public Result<?> handleBindException(BindException e, HttpServletRequest request) {
+        log.error("请求资源:{}, 发生异常:{}",request.getRequestURI(), e.getMessage());
+        String message = join(e.getAllErrors(),
+                DefaultMessageSourceResolvable::getDefaultMessage,",");
+        return Result.fail(ResultCode.FAILED_PARAMS_VALIDATE.getCode(),message);
+    }
+
+    /**
+     * 拼接所有异常信息
+     */
+    public <E> String join(Collection<E> collection, Function<E,String> function,
+                           CharSequence delimiter) {
+        if(CollectionUtils.isEmpty(collection)) {
+            return "";
+        }
+        return collection.stream().map(function).filter(Objects::nonNull).collect(
+                Collectors.joining(delimiter));
+    }
 
 
 }

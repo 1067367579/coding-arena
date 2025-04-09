@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -33,7 +34,7 @@ public class SysUserController extends BaseController {
     @ApiResponse(responseCode = "3102",description = "用户不存在")
     @ApiResponse(responseCode = "3103",description = "用户名或密码错误")
     @ApiResponse(responseCode = "3104",description = "被拉入黑名单")
-    public Result<String> login(@RequestBody LoginDTO loginDTO) {
+    public Result<String> login(@RequestBody @Validated LoginDTO loginDTO) {
         log.info("管理员用户登录：{}",loginDTO);
         return sysUserService.login(loginDTO);
     }
@@ -44,7 +45,7 @@ public class SysUserController extends BaseController {
     @ApiResponse(responseCode = "2000",description = "服务繁忙")
     @ApiResponse(responseCode = "3002",description = "参数校验失败")
     @ApiResponse(responseCode = "3101",description = "用户已存在")
-    public Result<?> addUser(@RequestBody SysUserDTO userDTO) {
+    public Result<?> addUser(@RequestBody @Validated SysUserDTO userDTO) {
         log.info("新增管理员用户:{}",userDTO);
         int result = sysUserService.add(userDTO);
         return responseByService(result);

@@ -37,11 +37,9 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Override
     public Result<String> login(LoginDTO loginDTO) {
+        //参数合法性校验通过Validation依赖完成
         String userAccount = loginDTO.getUserAccount();
         String password = loginDTO.getPassword();
-        if(!StringUtils.hasLength(userAccount) || !StringUtils.hasLength(password)){
-            return Result.fail(ResultCode.FAILED_PARAMS_VALIDATE);
-        }
         //需要获取用户ID 用于redis存储
         SysUser user = sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>()
                 .select(SysUser::getUserId,SysUser::getPassword).eq(SysUser::getUserAccount,userAccount));
@@ -57,7 +55,7 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Override
     public int add(SysUserDTO userDTO) {
-        //todo 参数合法性校验 避免插入过长数据 导致数据库崩溃 不能完全依靠前端
+        //参数合法性校验 此处使用Validation依赖采用注解方式处理
         //添加之前先要进行验证 数据库中是否已经有该用户名
         if(!StringUtils.hasLength(userDTO.getUserAccount()) ||
             !StringUtils.hasLength(userDTO.getPassword())) {
