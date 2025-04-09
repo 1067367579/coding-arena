@@ -40,6 +40,14 @@ public class Result <T>{
         return assembleResult(null,ResultCode.FAILED);
     }
 
+    //失败 指定错误码与信息
+    public static<T> Result<T> fail(int code, String msg) {
+        Result<T> result = new Result<>();
+        result.setCode(code);
+        result.setMsg(msg);
+        return result;
+    }
+
     //成功 不需要返回数据
     public static<T> Result<T> ok() {
         return assembleResult(null, ResultCode.SUCCESS);

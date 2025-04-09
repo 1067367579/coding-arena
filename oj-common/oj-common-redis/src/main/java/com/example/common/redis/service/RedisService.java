@@ -198,4 +198,11 @@ public class RedisService {
     public Long deleteCacheMapValue(final String key, final String hKey) {
         return redisTemplate.opsForHash().delete(key, hKey);
     }
+
+    /**
+        获取有效时间
+     */
+    public Long getExpire(String s, TimeUnit timeUnit) {
+        return redisTemplate.getExpire(s, timeUnit);
+    }
 }

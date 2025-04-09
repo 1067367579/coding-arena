@@ -31,9 +31,6 @@ public class SysUserServiceImpl implements SysUserService {
     @Autowired
     private TokenService tokenService;
 
-    @Autowired
-    private RedisConfig redisConfig;
-
     @Override
     public Result<String> login(LoginDTO loginDTO) {
         String userAccount = loginDTO.getUserAccount();

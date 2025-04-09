@@ -48,7 +48,7 @@ public class SysUserController {
         return new Result<>();
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping("/delete/{userId}")
     @Operation(summary = "删除用户",description = "通过用户ID删除用户")
     @Parameters(value = {
             @Parameter(name = "userId",in = ParameterIn.PATH,description = "用户ID")

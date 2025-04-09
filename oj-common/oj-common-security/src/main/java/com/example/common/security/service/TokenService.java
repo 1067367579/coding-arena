@@ -1,10 +1,12 @@
 package com.example.common.security.service;
 
 import com.example.common.redis.service.RedisService;
-import com.example.common.security.entity.LoginUser;
-import com.example.common.security.utils.JWTUtils;
+import com.example.core.domain.LoginUser;
+import com.example.core.utils.JWTUtils;
 import com.example.core.constants.JwtConstants;
 import com.example.core.constants.RedisConstants;
+import io.jsonwebtoken.Claims;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,11 +15,15 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
+@Slf4j
 public class TokenService {
 
     @Autowired
     private RedisService redisService;
 
+    /**
+     *  创建令牌 userId为key value保存用户的身份
+     */
     public String createToken(Long userId,Integer identity,String secret) {
         //验证通过 签发令牌 JWT只存储唯一标识信息 并不能确定用户的身份 比如管理员
         Map<String,Object> map = new HashMap<>();
@@ -26,6 +32,9 @@ public class TokenService {
         return JWTUtils.createToken(map, secret);
     }
 
+    /**
+     * 令牌详细信息放到redis中 控制有效时间
+     */
     private void refreshToken(Long userId, Integer identity) {
         /*
             第三方组件存储敏感信息 redis表明用户身份字段
@@ -36,7 +45,40 @@ public class TokenService {
          */
         LoginUser loginUser = new LoginUser();
         loginUser.setIdentity(identity);
-        redisService.setCacheObject(RedisConstants.USER_LOGIN_PREFIX+userId,
+        redisService.setCacheObject(getRedisKey(userId),
                 loginUser,RedisConstants.LOGIN_TTL, TimeUnit.MINUTES);
+    }
+
+    /**
+     * 延长令牌逻辑 这里返回错误不合适，因为用户身份校验已经通过 是后端自己的业务错误
+     */
+    public void extendToken(String token,String secret) {
+        //先判断令牌是否合法 拿出令牌的redis key
+        Claims claims;
+        try {
+             claims = JWTUtils.parseToken(token, secret);
+             if(claims == null) {
+                 //延长失败 直接return 后端业务逻辑错误 需要记录日志 此处延长失败不影响请求的处理
+                 log.error("解析Token出现异常,解析出的claims为null");
+                 return;
+             }
+        } catch (Exception ex) {
+            //直接return
+            log.error("解析Token出现异常，{}",ex.getMessage());
+            return;
+        }
+        Long userId = claims.get(JwtConstants.USER_ID, Long.class);
+        //到redis中获取有效时间
+        Long ttl = redisService.getExpire(getRedisKey(userId),TimeUnit.MINUTES);
+        //判断ttl是否小于三小时
+        if(ttl <= RedisConstants.LOGIN_EXTEND_TTL) {
+            //延长到十二个小时
+            redisService.expire(getRedisKey(userId),RedisConstants.LOGIN_TTL
+                    ,TimeUnit.MINUTES);
+        }
+    }
+
+    private static String getRedisKey(Long userId) {
+        return RedisConstants.USER_LOGIN_PREFIX + userId;
     }
 }
