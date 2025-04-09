@@ -1,16 +1,14 @@
 package com.example.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.example.common.redis.config.RedisConfig;
-import com.example.common.redis.service.RedisService;
 import com.example.common.security.exception.ServiceException;
 import com.example.common.security.service.TokenService;
 import com.example.core.constants.RedisConstants;
 import com.example.core.domain.Result;
 import com.example.core.enums.ResultCode;
-import com.example.system.entity.LoginDTO;
-import com.example.system.entity.SysUser;
-import com.example.system.entity.SysUserDTO;
+import com.example.system.domain.dto.LoginDTO;
+import com.example.system.domain.entity.SysUser;
+import com.example.system.domain.dto.SysUserDTO;
 import com.example.system.mapper.SysUserMapper;
 import com.example.system.service.SysUserService;
 import com.example.system.utils.BCryptUtils;
@@ -21,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 

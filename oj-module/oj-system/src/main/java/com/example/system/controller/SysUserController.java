@@ -2,9 +2,9 @@ package com.example.system.controller;
 
 import com.example.core.controller.BaseController;
 import com.example.core.domain.Result;
-import com.example.system.entity.LoginDTO;
-import com.example.system.entity.SysUserDTO;
-import com.example.system.entity.SysUserVO;
+import com.example.system.domain.dto.LoginDTO;
+import com.example.system.domain.dto.SysUserDTO;
+import com.example.system.domain.vo.SysUserVO;
 import com.example.system.service.SysUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
