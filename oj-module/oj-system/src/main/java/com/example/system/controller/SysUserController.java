@@ -1,9 +1,12 @@
 package com.example.system.controller;
 
+import com.example.common.security.service.TokenService;
+import com.example.core.constants.HttpConstants;
 import com.example.core.controller.BaseController;
 import com.example.core.domain.Result;
 import com.example.system.domain.dto.LoginDTO;
 import com.example.system.domain.dto.SysUserDTO;
+import com.example.system.domain.vo.LoginUserVO;
 import com.example.system.domain.vo.SysUserVO;
 import com.example.system.service.SysUserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -78,10 +81,24 @@ public class SysUserController extends BaseController {
     @Parameters(value = {
             @Parameter(name = "userId", in = ParameterIn.QUERY, description = "⽤户ID")
     })
-    @ApiResponse(responseCode = "1000", description = "成功获取⽤⼾信息")
+    @ApiResponse(responseCode = "1000", description = "成功获取⽤户信息")
     @ApiResponse(responseCode = "2000", description = "服务繁忙请稍后重试")
-    @ApiResponse(responseCode = "3101", description = "⽤⼾不存在")
+    @ApiResponse(responseCode = "3101", description = "⽤户不存在")
     public Result<SysUserVO> detail(@RequestParam Long userId) {
         return null;
+    }
+
+    @GetMapping("/info")
+    @Operation(summary = "获取当前用户简单信息",description = "根据token获取用户简单信息")
+    @Parameters(value = {
+            @Parameter(name = "token",in = ParameterIn.HEADER,description = "令牌")
+    })
+    @ApiResponse(responseCode = "1000", description = "成功获取⽤户信息")
+    @ApiResponse(responseCode = "2000", description = "服务繁忙请稍后重试")
+    @ApiResponse(responseCode = "3101", description = "⽤户不存在")
+    public Result<LoginUserVO> info(@RequestHeader(HttpConstants.AUTHENTICATION) String token) {
+        log.info("获取到当前用户令牌为：{}",token);
+        token = token.replaceFirst(HttpConstants.AUTHENTICATION_PREFIX,"");
+        return sysUserService.info(token);
     }
 }

@@ -1,6 +1,7 @@
 package com.example.common.security.service;
 
 import com.example.common.redis.service.RedisService;
+import com.example.core.constants.HttpConstants;
 import com.example.core.constants.JwtConstants;
 import com.example.core.constants.RedisConstants;
 import com.example.core.domain.LoginUser;
@@ -24,18 +25,18 @@ public class TokenService {
     /**
      *  创建令牌 userId为key value保存用户的身份
      */
-    public String createToken(Long userId,Integer identity,String secret) {
+    public String createToken(Long userId,String nickName,Integer identity,String secret) {
         //验证通过 签发令牌 JWT只存储唯一标识信息 并不能确定用户的身份 比如管理员
         Map<String,Object> map = new HashMap<>();
         map.put(JwtConstants.USER_ID,userId);
-        refreshToken(userId, identity);
+        refreshToken(userId, identity,nickName);
         return JWTUtils.createToken(map, secret);
     }
 
     /**
      * 令牌详细信息放到redis中 控制有效时间
      */
-    private void refreshToken(Long userId, Integer identity) {
+    private void refreshToken(Long userId, Integer identity,String nickName) {
         /*
             第三方组件存储敏感信息 redis表明用户身份字段
             身份认证具体要存储哪些信息 identity 1 表示普通用户 2 表示管理员用户 对象 考虑扩展性
@@ -45,6 +46,7 @@ public class TokenService {
          */
         LoginUser loginUser = new LoginUser();
         loginUser.setIdentity(identity);
+        loginUser.setNickName(nickName);
         redisService.setCacheObject(getRedisKey(userId),
                 loginUser,RedisConstants.LOGIN_TTL, TimeUnit.MINUTES);
     }
@@ -80,5 +82,14 @@ public class TokenService {
 
     private static String getRedisKey(Long userId) {
         return RedisConstants.USER_LOGIN_PREFIX + userId;
+    }
+
+    /**
+     * 获取用户对象返回
+     */
+    public LoginUser getLoginUser(String token,String secret) {
+        Claims claims = JWTUtils.parseToken(token, secret);
+        Long userId = claims.get(JwtConstants.USER_ID, Long.class);
+        return redisService.getCacheObject(getRedisKey(userId),LoginUser.class);
     }
 }
