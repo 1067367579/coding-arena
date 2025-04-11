@@ -88,8 +88,23 @@ public class TokenService {
      * 获取用户对象返回
      */
     public LoginUser getLoginUser(String token,String secret) {
-        Claims claims = JWTUtils.parseToken(token, secret);
-        Long userId = claims.get(JwtConstants.USER_ID, Long.class);
+        Long userId = getUserKey(token, secret);
         return redisService.getCacheObject(getRedisKey(userId),LoginUser.class);
+    }
+
+    /**
+     * 从token中获取用户唯一标识
+     */
+    public Long getUserKey(String token, String secret) {
+        Claims claims = JWTUtils.parseToken(token, secret);
+        return claims.get(JwtConstants.USER_ID, Long.class);
+    }
+
+    /**
+     * 从redis中删除用户对象
+     */
+    public boolean deleteLoginUser(String token,String secret) {
+        Long userId = getUserKey(token, secret);
+        return redisService.deleteObject(getRedisKey(userId));
     }
 }

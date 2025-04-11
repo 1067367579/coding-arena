@@ -1,7 +1,7 @@
 package com.example.system.controller;
 
 import com.example.common.redis.service.RedisService;
-import com.example.system.domain.entity.SysUser;
+import com.example.system.domain.user.entity.SysUser;
 import com.example.system.mapper.SysUserMapper;
 import com.example.system.utils.BCryptUtils;
 import lombok.extern.slf4j.Slf4j;

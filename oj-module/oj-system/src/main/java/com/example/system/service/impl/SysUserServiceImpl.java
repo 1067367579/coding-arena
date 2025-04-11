@@ -1,23 +1,19 @@
 package com.example.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.example.common.redis.service.RedisService;
 import com.example.common.security.exception.ServiceException;
 import com.example.common.security.service.TokenService;
-import com.example.core.constants.JwtConstants;
 import com.example.core.constants.RedisConstants;
 import com.example.core.domain.LoginUser;
 import com.example.core.domain.Result;
 import com.example.core.enums.ResultCode;
-import com.example.core.utils.JWTUtils;
-import com.example.system.domain.dto.LoginDTO;
-import com.example.system.domain.dto.SysUserDTO;
-import com.example.system.domain.entity.SysUser;
-import com.example.system.domain.vo.LoginUserVO;
+import com.example.system.domain.user.dto.LoginDTO;
+import com.example.system.domain.user.dto.SysUserDTO;
+import com.example.system.domain.user.entity.SysUser;
+import com.example.system.domain.user.vo.LoginUserVO;
 import com.example.system.mapper.SysUserMapper;
 import com.example.system.service.SysUserService;
 import com.example.system.utils.BCryptUtils;
-import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -97,5 +93,16 @@ public class SysUserServiceImpl implements SysUserService {
             throw new ServiceException(ResultCode.FAILED);
         }
         return Result.ok(loginUserVO);
+    }
+
+    @Override
+    public boolean logout(String token) {
+        boolean res;
+        try {
+             res = tokenService.deleteLoginUser(token,secret);
+        } catch (Exception e) {
+            throw new ServiceException(ResultCode.FAILED);
+        }
+        return res;
     }
 }

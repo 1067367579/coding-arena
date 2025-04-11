@@ -1,6 +1,11 @@
 package com.example.core.controller;
 
+import com.example.core.domain.PageResult;
 import com.example.core.domain.Result;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+
+import java.util.List;
 
 public class BaseController {
 
@@ -11,5 +16,10 @@ public class BaseController {
 
     public Result<?> responseByService(boolean result) {
         return result ? Result.ok() : Result.fail();
+    }
+
+    public PageResult getPageResult(List<?> rows) {
+        long total = new PageInfo<>(rows).getTotal();
+        return PageResult.success(rows,total);
     }
 }

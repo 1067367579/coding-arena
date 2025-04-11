@@ -1,4 +1,4 @@
-package com.example.system.domain.vo;
+package com.example.system.domain.user.vo;
 
 import lombok.Data;
 

@@ -107,7 +107,7 @@ public class AuthFilter implements GlobalFilter, Ordered {
      *  webFlux写入响应，Gateway不属于SpringMVC框架，不能使用全局异常处理
      */
     private Mono<Void> webFluxResponseWriter(ServerHttpResponse response,String msg,int code) {
-        response.setStatusCode(HttpStatus.UNAUTHORIZED);
+        response.setStatusCode(HttpStatus.OK);
         //返回类型为Application/Json类型 也需要自己手动指定
         response.getHeaders().add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         //构造返回对象

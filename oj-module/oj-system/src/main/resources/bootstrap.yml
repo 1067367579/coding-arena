@@ -13,3 +13,5 @@ spring:
       discovery:
         server-addr: http://114.132.235.199:8848
         namespace: ff584b75-4fce-4648-a046-34fd21013463
+mybatis-plus:
+  mapper-locations: mapper/*.xml

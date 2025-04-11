@@ -1,0 +1,41 @@
+package com.example.system.controller;
+
+import com.example.core.controller.BaseController;
+import com.example.core.domain.PageResult;
+import com.example.system.domain.question.Question;
+import com.example.system.domain.question.dto.QuestionQueryDTO;
+import com.example.system.service.QuestionService;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/sys/question")
+@Tag(name = "题库管理接口")
+@Slf4j
+public class QuestionController extends BaseController {
+
+    @Autowired
+    QuestionService questionService;
+
+    //列表 参数 题目难度 模糊查询 分页查询
+    //需要告知前端总页数 新的数据结构 列表相关的接口都可以使用此数据结构返回
+    //分多少页 由前端计算
+    //用请求参数的方式传入参数
+    @GetMapping("/list")
+    public PageResult getQuestionList(QuestionQueryDTO questionQueryDTO) {
+      log.info("列表查询参数:{}", questionQueryDTO);
+      if(questionQueryDTO.getPageNum() == null) {
+          questionQueryDTO.setPageNum(1);
+      }
+      if(questionQueryDTO.getPageSize() == null) {
+          questionQueryDTO.setPageSize(10);
+      }
+      return getPageResult(questionService.getQuestionList(questionQueryDTO));
+    }
+
+}

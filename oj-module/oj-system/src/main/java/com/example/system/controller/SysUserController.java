@@ -1,13 +1,12 @@
 package com.example.system.controller;
 
-import com.example.common.security.service.TokenService;
 import com.example.core.constants.HttpConstants;
 import com.example.core.controller.BaseController;
 import com.example.core.domain.Result;
-import com.example.system.domain.dto.LoginDTO;
-import com.example.system.domain.dto.SysUserDTO;
-import com.example.system.domain.vo.LoginUserVO;
-import com.example.system.domain.vo.SysUserVO;
+import com.example.system.domain.user.dto.LoginDTO;
+import com.example.system.domain.user.dto.SysUserDTO;
+import com.example.system.domain.user.vo.LoginUserVO;
+import com.example.system.domain.user.vo.SysUserVO;
 import com.example.system.service.SysUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -98,7 +97,26 @@ public class SysUserController extends BaseController {
     @ApiResponse(responseCode = "3101", description = "⽤户不存在")
     public Result<LoginUserVO> info(@RequestHeader(HttpConstants.AUTHENTICATION) String token) {
         log.info("获取到当前用户令牌为：{}",token);
-        token = token.replaceFirst(HttpConstants.AUTHENTICATION_PREFIX,"");
+        token = processToken(token);
         return sysUserService.info(token);
+    }
+
+    private static String processToken(String token) {
+        return token.replaceFirst(HttpConstants.AUTHENTICATION_PREFIX,"");
+    }
+
+    @DeleteMapping("/logout")
+    @Operation(summary = "退出登录",description = "用户根据token退出登录")
+    @Parameters(value = {
+            @Parameter(name = "token",in = ParameterIn.HEADER,description = "令牌")
+    })
+    @ApiResponse(responseCode = "1000", description = "成功退出登录")
+    @ApiResponse(responseCode = "2000", description = "服务繁忙请稍后重试")
+    @ApiResponse(responseCode = "3001", description = "未授权")
+    @ApiResponse(responseCode = "3101", description = "⽤户不存在")
+    public Result<?> logout(@RequestHeader(HttpConstants.AUTHENTICATION) String token) {
+        log.info("获取到当前用户令牌为：{}",token);
+        token = processToken(token);
+        return responseByService(sysUserService.logout(token));
     }
 }

@@ -1,4 +1,4 @@
-package com.example.system.domain.dto;
+package com.example.system.domain.user.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -10,11 +10,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(name = "管理员用户登录DTO")
-public class LoginDTO {
+@Schema(name = "管理员用户DTO")
+public class SysUserDTO {
 
     @NotBlank(message = "用户账号不能为空")
-    @Schema(description = "用户帐号")
+    @Schema(description = "用户账号")
     private String userAccount;
 
     @NotBlank(message = "用户密码不能为空")
