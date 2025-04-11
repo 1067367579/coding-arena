@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.system.mapper.ExamMapper">
+    <select id="getExamList" resultType="com.example.system.domain.exam.vo.ExamQueryVO">
+        select
+        tb_exam.exam_id,
+        tb_exam.title,
+        tb_exam.start_time,
+        tb_exam.end_time,
+        tb_sys_user.nick_name as createName,
+        tb_exam.create_time,
+        tb_exam.status
+        from tb_exam
+        left join tb_sys_user
+        on tb_exam.create_by = tb_sys_user.user_id
+        <where>
+            <if test="startTime!=null and startTime!=''">
+                and start_time &gt;= #{startTime}
+            </if>
+            <if test="endTime!=null and endTime!=''">
+                and end_time &lt;= #{endTime}
+            </if>
+            <if test="title!=null and title!=''">
+                and title like concat('%',#{title},'%')
+            </if>
+            <if test="status!=null">
+                and status = #{status}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+</mapper>

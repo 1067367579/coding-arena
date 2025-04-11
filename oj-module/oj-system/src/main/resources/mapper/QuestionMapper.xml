@@ -17,10 +17,10 @@
             <if test="difficulty!=null">
                 and difficulty = #{difficulty}
             </if>
-            <if test="title!=null">
+            <if test="title!=null and title!=''">
                 and title like concat('%',#{title},'%')
             </if>
         </where>
-        order by create_time desc;
+        order by create_time desc
     </select>
 </mapper>

@@ -1,4 +1,4 @@
-package com.example.system.domain.question;
+package com.example.system.domain.question.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -11,7 +11,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Question extends BaseEntity {
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(value = "question_id", type = IdType.ASSIGN_ID)
     private Long questionId;
     private String title;
     private Integer difficulty;

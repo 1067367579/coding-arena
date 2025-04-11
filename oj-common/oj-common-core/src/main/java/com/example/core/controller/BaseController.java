@@ -1,5 +1,6 @@
 package com.example.core.controller;
 
+import com.example.core.domain.PageQueryDTO;
 import com.example.core.domain.PageResult;
 import com.example.core.domain.Result;
 import com.github.pagehelper.PageInfo;
@@ -20,5 +21,14 @@ public class BaseController {
     public PageResult getPageResult(List<?> rows) {
         long total = new PageInfo<>(rows).getTotal();
         return PageResult.success(rows,total);
+    }
+    
+    public void processPageArgs(PageQueryDTO pageQueryDTO) {
+        if(pageQueryDTO.getPageNum() == null) {
+            pageQueryDTO.setPageNum(1);
+        }
+        if(pageQueryDTO.getPageSize() == null) {
+            pageQueryDTO.setPageSize(10);
+        }
     }
 }

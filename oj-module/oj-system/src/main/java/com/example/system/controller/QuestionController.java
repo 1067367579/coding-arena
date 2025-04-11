@@ -30,12 +30,7 @@ public class QuestionController extends BaseController {
     @GetMapping("/list")
     public PageResult getQuestionList(QuestionQueryDTO questionQueryDTO) {
       log.info("列表查询参数:{}", questionQueryDTO);
-      if(questionQueryDTO.getPageNum() == null) {
-          questionQueryDTO.setPageNum(1);
-      }
-      if(questionQueryDTO.getPageSize() == null) {
-          questionQueryDTO.setPageSize(10);
-      }
+      processPageArgs(questionQueryDTO);
       return getPageResult(questionService.getQuestionList(questionQueryDTO));
     }
 

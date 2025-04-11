@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.common.security.exception.ServiceException;
 import com.example.core.domain.Result;
 import com.example.core.enums.ResultCode;
-import com.example.system.domain.question.Question;
+import com.example.system.domain.question.entity.Question;
 import com.example.system.domain.question.dto.QuestionAddDTO;
 import com.example.system.domain.question.dto.QuestionEditDTO;
 import com.example.system.domain.question.dto.QuestionQueryDTO;
