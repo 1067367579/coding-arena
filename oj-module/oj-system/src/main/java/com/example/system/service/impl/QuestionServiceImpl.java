@@ -82,4 +82,14 @@ public class QuestionServiceImpl implements QuestionService {
         question.setSpaceLimit(editDTO.getSpaceLimit());
         return questionMapper.updateById(question);
     }
+
+    @Override
+    public int del(Long questionId) {
+        //查询资源
+        Question question = questionMapper.selectById(questionId);
+        if(question == null){
+            throw new ServiceException(ResultCode.FAILED_NOT_EXISTS);
+        }
+        return questionMapper.deleteById(questionId);
+    }
 }

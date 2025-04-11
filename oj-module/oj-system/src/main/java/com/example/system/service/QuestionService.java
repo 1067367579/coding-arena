@@ -16,4 +16,6 @@ public interface QuestionService {
     Result<QuestionVO> getDetail(Long questionId);
 
     int edit(QuestionEditDTO editDTO);
+
+    int del(Long questionId);
 }

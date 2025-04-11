@@ -57,4 +57,10 @@ public class QuestionController extends BaseController {
         log.info("编辑题目:{}",editDTO);
         return responseByService(questionService.edit(editDTO));
     }
+
+    @DeleteMapping("/delete")
+    public Result deleteQuestion(Long questionId) {
+        log.info("删除题目:{}",questionId);
+        return responseByService(questionService.del(questionId));
+    }
 }
