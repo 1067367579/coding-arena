@@ -1,6 +1,5 @@
 package com.example.core.domain;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.core.enums.ResultCode;
 import lombok.Data;
 

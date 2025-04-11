@@ -1,7 +1,6 @@
 package com.example.common.security.service;
 
 import com.example.common.redis.service.RedisService;
-import com.example.core.constants.HttpConstants;
 import com.example.core.constants.JwtConstants;
 import com.example.core.constants.RedisConstants;
 import com.example.core.domain.LoginUser;

@@ -3,7 +3,6 @@ package com.example.system.controller;
 import com.example.core.controller.BaseController;
 import com.example.core.domain.PageResult;
 import com.example.core.domain.Result;
-import com.example.system.domain.question.Question;
 import com.example.system.domain.question.dto.QuestionAddDTO;
 import com.example.system.domain.question.dto.QuestionEditDTO;
 import com.example.system.domain.question.dto.QuestionQueryDTO;
