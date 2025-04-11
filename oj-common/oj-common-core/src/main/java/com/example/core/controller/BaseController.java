@@ -2,7 +2,6 @@ package com.example.core.controller;
 
 import com.example.core.domain.PageResult;
 import com.example.core.domain.Result;
-import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;

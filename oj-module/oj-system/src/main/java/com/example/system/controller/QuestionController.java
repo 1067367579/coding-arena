@@ -2,16 +2,16 @@ package com.example.system.controller;
 
 import com.example.core.controller.BaseController;
 import com.example.core.domain.PageResult;
+import com.example.core.domain.Result;
 import com.example.system.domain.question.Question;
+import com.example.system.domain.question.dto.QuestionAddDTO;
 import com.example.system.domain.question.dto.QuestionQueryDTO;
 import com.example.system.service.QuestionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/sys/question")
@@ -38,4 +38,9 @@ public class QuestionController extends BaseController {
       return getPageResult(questionService.getQuestionList(questionQueryDTO));
     }
 
+    @PostMapping("/add")
+    public Result addQuestion(@RequestBody @Validated QuestionAddDTO question) {
+        log.info("新增题目:{}",question);
+        return responseByService(questionService.addQuestion(question));
+    }
 }
