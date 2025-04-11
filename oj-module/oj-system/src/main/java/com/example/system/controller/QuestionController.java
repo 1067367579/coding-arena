@@ -5,7 +5,9 @@ import com.example.core.domain.PageResult;
 import com.example.core.domain.Result;
 import com.example.system.domain.question.Question;
 import com.example.system.domain.question.dto.QuestionAddDTO;
+import com.example.system.domain.question.dto.QuestionEditDTO;
 import com.example.system.domain.question.dto.QuestionQueryDTO;
+import com.example.system.domain.question.vo.QuestionVO;
 import com.example.system.service.QuestionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -42,5 +44,17 @@ public class QuestionController extends BaseController {
     public Result addQuestion(@RequestBody @Validated QuestionAddDTO question) {
         log.info("新增题目:{}",question);
         return responseByService(questionService.addQuestion(question));
+    }
+
+    @GetMapping("/detail")
+    public Result<QuestionVO> getQuestionDetail(Long questionId) {
+        log.info("获取题目详细信息:{}",questionId);
+        return questionService.getDetail(questionId);
+    }
+
+    @PutMapping("/edit")
+    public Result editQuestion(@RequestBody @Validated QuestionEditDTO editDTO) {
+        log.info("编辑题目:{}",editDTO);
+        return responseByService(questionService.edit(editDTO));
     }
 }
