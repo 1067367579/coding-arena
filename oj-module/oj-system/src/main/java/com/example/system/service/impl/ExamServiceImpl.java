@@ -27,9 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -132,11 +130,16 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
         //判断参数是否有问题
         checkDTO(examEditDTO,examEditDTO.getExamId());
         //对竞赛信息编辑
-        DateTimeFormatter sdf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        exam.setStartTime(sdf.format(examEditDTO.getStartTime()));
-        exam.setEndTime(sdf.format(examEditDTO.getEndTime()));
+        exam.setStartTime(examEditDTO.getStartTime());
+        exam.setEndTime(examEditDTO.getEndTime());
         exam.setTitle(examEditDTO.getTitle());
         return examMapper.updateById(exam);
+    }
+
+    @Override
+    public int deleteQuestion(Long examId, Long questionId) {
+
+        return 0;
     }
 
     @Transactional

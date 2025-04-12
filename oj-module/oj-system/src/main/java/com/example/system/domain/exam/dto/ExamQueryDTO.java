@@ -1,17 +1,21 @@
 package com.example.system.domain.exam.dto;
 
 import com.example.core.domain.PageQueryDTO;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
+import org.junit.jupiter.params.shadow.com.univocity.parsers.annotations.Format;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 public class ExamQueryDTO extends PageQueryDTO {
-    private String startTime;
-    private String endTime;
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime startTime;
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime endTime;
     private String title;
     private Integer status;
 }

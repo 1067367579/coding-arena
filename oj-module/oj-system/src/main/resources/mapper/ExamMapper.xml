@@ -16,10 +16,10 @@
         left join tb_sys_user
         on tb_exam.create_by = tb_sys_user.user_id
         <where>
-            <if test="startTime!=null and startTime!=''">
+            <if test="startTime!=null">
                 and start_time &gt;= #{startTime}
             </if>
-            <if test="endTime!=null and endTime!=''">
+            <if test="endTime!=null">
                 and end_time &lt;= #{endTime}
             </if>
             <if test="title!=null and title!=''">

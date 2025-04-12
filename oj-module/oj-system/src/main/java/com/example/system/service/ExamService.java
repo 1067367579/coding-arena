@@ -1,6 +1,5 @@
 package com.example.system.service;
 
-import com.example.core.domain.Result;
 import com.example.system.domain.exam.dto.ExamAddDTO;
 import com.example.system.domain.exam.dto.ExamEditDTO;
 import com.example.system.domain.exam.dto.ExamQueryDTO;
@@ -20,4 +19,6 @@ public interface ExamService {
     ExamVO detail(Long examId);
 
     int edit(ExamEditDTO examEditDTO);
+
+    int deleteQuestion(Long examId, Long questionId);
 }

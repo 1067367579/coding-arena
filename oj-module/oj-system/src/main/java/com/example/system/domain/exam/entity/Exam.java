@@ -7,6 +7,8 @@ import com.example.core.domain.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 
 @Getter
 @Setter
@@ -15,7 +17,7 @@ public class Exam extends BaseEntity {
     @TableId(value = "exam_id", type = IdType.ASSIGN_ID)
     private Long examId;
     private String title;
-    private String startTime;
-    private String endTime;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
     private Integer status;
 }

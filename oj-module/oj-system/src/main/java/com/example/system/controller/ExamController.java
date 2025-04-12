@@ -7,9 +7,7 @@ import com.example.system.domain.exam.dto.ExamAddDTO;
 import com.example.system.domain.exam.dto.ExamEditDTO;
 import com.example.system.domain.exam.dto.ExamQueryDTO;
 import com.example.system.domain.exam.dto.ExamQuestionDTO;
-import com.example.system.domain.exam.entity.Exam;
 import com.example.system.domain.exam.vo.ExamAddVO;
-import com.example.system.domain.exam.vo.ExamQueryVO;
 import com.example.system.domain.exam.vo.ExamVO;
 import com.example.system.service.ExamService;
 import lombok.extern.slf4j.Slf4j;
@@ -53,5 +51,11 @@ public class ExamController extends BaseController {
     public Result<?> edit(@RequestBody ExamEditDTO examEditDTO) {
         log.info("编辑竞赛基本信息:{}",examEditDTO);
         return responseByService(examService.edit(examEditDTO));
+    }
+
+    @DeleteMapping("/question/delete")
+    public Result<?> deleteQuestion(Long examId,Long questionId) {
+        log.info("删除竞赛中的题目，竞赛ID：{},题目ID:{}",examId,questionId);
+        return responseByService(examService.deleteQuestion(examId,questionId));
     }
 }
