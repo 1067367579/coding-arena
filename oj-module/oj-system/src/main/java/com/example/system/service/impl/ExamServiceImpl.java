@@ -138,8 +138,17 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
 
     @Override
     public int deleteQuestion(Long examId, Long questionId) {
-
-        return 0;
+        //还是一样先要校验exam 获取exam 然后再对其是否开赛做出判断
+        Exam exam = getExamById(examId);
+        //开赛了之后就无法修改了
+        if(LocalDateTime.now().isAfter(exam.getStartTime())) {
+            throw new ServiceException(ResultCode.FAILED_START_TIME_PASSED);
+        }
+        //进行删除操作
+        return examQuestionMapper.delete(new LambdaQueryWrapper<ExamQuestion>()
+                .eq(ExamQuestion::getExamId, examId)
+                .eq(ExamQuestion::getQuestionId, questionId)
+        );
     }
 
     @Transactional

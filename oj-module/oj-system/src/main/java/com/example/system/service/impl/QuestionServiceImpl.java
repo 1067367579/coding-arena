@@ -18,8 +18,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -31,6 +36,15 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public List<QuestionQueryVO> getQuestionList(QuestionQueryDTO questionQueryDTO) {
         PageHelper.startPage(questionQueryDTO.getPageNum(), questionQueryDTO.getPageSize());
+        //进行集合字符串处理 只有有数据才进行处理
+        String excludeIdSetStr = questionQueryDTO.getExcludeIdSetStr();
+        if(StringUtils.hasLength(excludeIdSetStr)){
+            String[] ids = excludeIdSetStr.split(";");
+            Set<Long> idSet = Arrays.stream(ids)
+                    .map(Long::valueOf)
+                    .collect(Collectors.toSet());
+            questionQueryDTO.setExcludeIdSet(idSet);
+        }
         return questionMapper.getQuestionList(questionQueryDTO);
     }
 

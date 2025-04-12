@@ -20,6 +20,12 @@
             <if test="title!=null and title!=''">
                 and title like concat('%',#{title},'%')
             </if>
+            <if test="excludeIdSet!=null and !excludeIdSet.isEmpty()">
+                <foreach collection="excludeIdSet" open="and question_id not in ("
+                         close=")" separator="," item="id">
+                    #{id}
+                </foreach>
+            </if>
         </where>
         order by create_time desc
     </select>
