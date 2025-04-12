@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.common.security.exception.ServiceException;
 import com.example.core.enums.ResultCode;
 import com.example.system.domain.exam.dto.ExamAddDTO;
+import com.example.system.domain.exam.dto.ExamEditDTO;
 import com.example.system.domain.exam.dto.ExamQueryDTO;
 import com.example.system.domain.exam.dto.ExamQuestionDTO;
 import com.example.system.domain.exam.entity.Exam;
@@ -23,9 +24,12 @@ import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,9 +52,22 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
 
     @Override
     public ExamAddVO add(ExamAddDTO examAddDTO) {
+        checkDTO(examAddDTO,null);
+        Exam exam = new Exam();
+        BeanUtil.copyProperties(examAddDTO, exam);
+        if(examMapper.insert(exam)<=0) {
+            throw new ServiceException(ResultCode.FAILED);
+        }
+        return new ExamAddVO(exam.getExamId());
+    }
+
+    private void checkDTO(ExamAddDTO examAddDTO,Long examId) {
         //检验参数合法性 标题是否重复 开始时间 结束时间的合法性判断
+        //编辑时判断 要传入ne 也就是标题相同时不能是相同的ID
         List<Exam> exams = examMapper.selectList(new LambdaQueryWrapper<Exam>()
-                .eq(Exam::getTitle, examAddDTO.getTitle()));
+                .eq(Exam::getTitle, examAddDTO.getTitle())
+                .ne(examId!=null,Exam::getExamId,examId)
+        );
         if(!CollectionUtils.isEmpty(exams)){
             throw new ServiceException(ResultCode.FAILED_ALREADY_EXISTS);
         }
@@ -60,14 +77,9 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
         if(examAddDTO.getEndTime().isBefore(examAddDTO.getStartTime())) {
             throw new ServiceException(ResultCode.FAILED_EXAM_TIME);
         }
-        Exam exam = new Exam();
-        BeanUtil.copyProperties(examAddDTO, exam);
-        if(examMapper.insert(exam)<=0) {
-            throw new ServiceException(ResultCode.FAILED);
-        }
-        return new ExamAddVO(exam.getExamId());
     }
 
+    @Transactional
     @Override
     public boolean addQuestion(ExamQuestionDTO dto) {
         //竞赛是否存在
@@ -113,6 +125,21 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
         return examVO;
     }
 
+    @Override
+    public int edit(ExamEditDTO examEditDTO) {
+        //判断是否有这个竞赛
+        Exam exam = getExamById(examEditDTO.getExamId());
+        //判断参数是否有问题
+        checkDTO(examEditDTO,examEditDTO.getExamId());
+        //对竞赛信息编辑
+        DateTimeFormatter sdf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        exam.setStartTime(sdf.format(examEditDTO.getStartTime()));
+        exam.setEndTime(sdf.format(examEditDTO.getEndTime()));
+        exam.setTitle(examEditDTO.getTitle());
+        return examMapper.updateById(exam);
+    }
+
+    @Transactional
     public boolean saveQuestion(ExamQuestionDTO dto) {
         List<ExamQuestion> examQuestions = new ArrayList<>();
         //遍历问题集合 拼装集合插入

@@ -4,6 +4,7 @@ import com.example.core.controller.BaseController;
 import com.example.core.domain.PageResult;
 import com.example.core.domain.Result;
 import com.example.system.domain.exam.dto.ExamAddDTO;
+import com.example.system.domain.exam.dto.ExamEditDTO;
 import com.example.system.domain.exam.dto.ExamQueryDTO;
 import com.example.system.domain.exam.dto.ExamQuestionDTO;
 import com.example.system.domain.exam.entity.Exam;
@@ -46,5 +47,11 @@ public class ExamController extends BaseController {
     public Result<ExamVO> detail(Long examId) {
         log.info("查看竞赛详细信息:{}",examId);
         return Result.ok(examService.detail(examId));
+    }
+
+    @PutMapping("/edit")
+    public Result<?> edit(@RequestBody ExamEditDTO examEditDTO) {
+        log.info("编辑竞赛基本信息:{}",examEditDTO);
+        return responseByService(examService.edit(examEditDTO));
     }
 }

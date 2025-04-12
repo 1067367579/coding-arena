@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class ExamQueryVO {
+    //避免前端number类型发生截断
     @JsonSerialize(using = ToStringSerializer.class)
     private Long examId;
     private String title;

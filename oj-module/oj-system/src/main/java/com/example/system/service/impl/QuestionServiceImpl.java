@@ -37,15 +37,18 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public int addQuestion(QuestionAddDTO questionAddDTO) {
         //判断题目的重复性
-        isDuplicated(questionAddDTO.getTitle());
+        isDuplicated(questionAddDTO.getTitle(),null);
         Question question = new Question();
         BeanUtil.copyProperties(questionAddDTO,question);
         return questionMapper.insert(question);
     }
 
-    private void isDuplicated(String title) {
+    //判断标题是否重复 分两种情况 新建时 和 后续编辑时 编辑的时候需要判断ID
+    private void isDuplicated(String title,Long questionId) {
         List<Question> questions = questionMapper.selectList(new LambdaQueryWrapper<>(Question.class)
-                .eq(Question::getTitle, title));
+                .eq(Question::getTitle, title)
+                .ne(questionId!=null,Question::getQuestionId,questionId)
+        );
         if(!CollectionUtils.isEmpty(questions)){
             throw new ServiceException(ResultCode.FAILED_ALREADY_EXISTS);
         }
@@ -69,6 +72,8 @@ public class QuestionServiceImpl implements QuestionService {
         if(question == null){
             throw new ServiceException(ResultCode.FAILED_NOT_EXISTS);
         }
+        //校验是否标题重复
+        isDuplicated(editDTO.getTitle(),editDTO.getQuestionId());
         //查出来之后进行修改操作
         question.setTitle(editDTO.getTitle());
         question.setContent(editDTO.getContent());
