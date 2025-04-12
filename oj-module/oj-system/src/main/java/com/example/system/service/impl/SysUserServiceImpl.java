@@ -69,7 +69,7 @@ public class SysUserServiceImpl implements SysUserService {
                 .eq(SysUser::getUserAccount,userDTO.getUserAccount()));
         if(!CollectionUtils.isEmpty(userList)) {
             //自定义异常
-            throw new ServiceException(ResultCode.AILED_USER_EXISTS);
+            throw new ServiceException(ResultCode.FAILED_USER_EXISTS);
         }
         //将DTO对象转换为实体
         SysUser sysUser = new SysUser();
