@@ -10,8 +10,11 @@ import com.example.system.domain.exam.dto.ExamQueryDTO;
 import com.example.system.domain.exam.dto.ExamQuestionDTO;
 import com.example.system.domain.exam.entity.Exam;
 import com.example.system.domain.exam.entity.ExamQuestion;
+import com.example.system.domain.exam.vo.ExamAddVO;
 import com.example.system.domain.exam.vo.ExamQueryVO;
+import com.example.system.domain.exam.vo.ExamVO;
 import com.example.system.domain.question.entity.Question;
+import com.example.system.domain.question.vo.QuestionQueryVO;
 import com.example.system.mapper.ExamMapper;
 import com.example.system.mapper.ExamQuestionMapper;
 import com.example.system.mapper.QuestionMapper;
@@ -20,7 +23,6 @@ import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
@@ -35,6 +37,8 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
     private ExamMapper examMapper;
     @Autowired
     private QuestionMapper questionMapper;
+    @Autowired
+    private ExamQuestionMapper examQuestionMapper;
 
     @Override
     public List<ExamQueryVO> list(ExamQueryDTO examQueryDTO) {
@@ -43,7 +47,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
     }
 
     @Override
-    public int add(ExamAddDTO examAddDTO) {
+    public ExamAddVO add(ExamAddDTO examAddDTO) {
         //检验参数合法性 标题是否重复 开始时间 结束时间的合法性判断
         List<Exam> exams = examMapper.selectList(new LambdaQueryWrapper<Exam>()
                 .eq(Exam::getTitle, examAddDTO.getTitle()));
@@ -58,14 +62,16 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
         }
         Exam exam = new Exam();
         BeanUtil.copyProperties(examAddDTO, exam);
-        return examMapper.insert(exam);
+        if(examMapper.insert(exam)<=0) {
+            throw new ServiceException(ResultCode.FAILED);
+        }
+        return new ExamAddVO(exam.getExamId());
     }
 
     @Override
-    @Transactional
     public boolean addQuestion(ExamQuestionDTO dto) {
         //竞赛是否存在
-        examExists(dto);
+        getExamById(dto.getExamId());
         //问题是否都存在 只有都存在才合法
         //如果传过来就是空的 直接返回 不再执行下面的逻辑
         if(CollectionUtils.isEmpty(dto.getQuestionIds())) {
@@ -80,7 +86,33 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
         return saveQuestion(dto);
     }
 
-    @Transactional
+    @Override
+    public ExamVO detail(Long examId) {
+        ExamVO examVO = new ExamVO();
+        //获取竞赛信息
+        Exam exam = getExamById(examId);
+        //将获取到的竞赛信息放到vo当中
+        BeanUtil.copyProperties(exam, examVO);
+        //查到了竞赛信息存在之后 获取题目信息
+        List<ExamQuestion> examQuestions = examQuestionMapper.selectList(new LambdaQueryWrapper<ExamQuestion>()
+                .select(ExamQuestion::getQuestionId)
+                .eq(ExamQuestion::getExamId, examId)
+        );
+        //如果题目为空就直接返回 不需要进行后续的操作
+        if(CollectionUtils.isEmpty(examQuestions)) {
+            return examVO;
+        }
+        //提取题目ID列表
+        List<Long> questionIds = examQuestions.stream().map(ExamQuestion::getQuestionId).toList();
+        //根据题目ID列表批处理查询 返回题目的信息
+        List<Question> questions = questionMapper.selectBatchIds(questionIds);
+        //将题目信息列表转换为题目VO列表
+        List<QuestionQueryVO> questionVOS = BeanUtil.copyToList(questions, QuestionQueryVO.class);
+        //转换好之后 设置到examVO当中
+        examVO.setExamQuestionList(questionVOS);
+        return examVO;
+    }
+
     public boolean saveQuestion(ExamQuestionDTO dto) {
         List<ExamQuestion> examQuestions = new ArrayList<>();
         //遍历问题集合 拼装集合插入
@@ -95,10 +127,11 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
         return saveBatch(examQuestions);
     }
 
-    private void examExists(ExamQuestionDTO dto) {
-        Exam exam = examMapper.selectById(dto.getExamId());
+    private Exam getExamById(Long examId) {
+        Exam exam = examMapper.selectById(examId);
         if(exam == null){
             throw new ServiceException(ResultCode.FAILED_EXAM_NOT_EXISTS);
         }
+        return exam;
     }
 }
