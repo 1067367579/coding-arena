@@ -12,6 +12,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Function;
@@ -38,6 +39,9 @@ public class GlobalExceptionHandler {
     public Result<?> handleRuntimeException(RuntimeException e, HttpServletRequest request) {
         String requestURI = request.getRequestURI();
         log.error("请求资源:{}，发生运行时异常：{}", requestURI, e.getMessage());
+        if(e.getMessage().contains("Duplicate entry")) {
+            return Result.fail(ResultCode.FAILED_ALREADY_EXISTS);
+        }
         return Result.fail(ResultCode.ERROR);
     }
 

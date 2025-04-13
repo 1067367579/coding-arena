@@ -3,6 +3,7 @@ package com.example.system.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.common.security.exception.ServiceException;
+import com.example.core.constants.Constants;
 import com.example.core.domain.Result;
 import com.example.core.enums.ResultCode;
 import com.example.system.domain.question.dto.QuestionAddDTO;
@@ -39,7 +40,7 @@ public class QuestionServiceImpl implements QuestionService {
         //进行集合字符串处理 只有有数据才进行处理
         String excludeIdSetStr = questionQueryDTO.getExcludeIdSetStr();
         if(StringUtils.hasLength(excludeIdSetStr)){
-            String[] ids = excludeIdSetStr.split(";");
+            String[] ids = excludeIdSetStr.split(Constants.QUESTION_ID_DELIMITER);
             Set<Long> idSet = Arrays.stream(ids)
                     .map(Long::valueOf)
                     .collect(Collectors.toSet());

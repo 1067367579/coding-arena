@@ -24,7 +24,8 @@ public enum ResultCode {
     FAILED_EXAM_TIME (3201,"竞赛时间设置错误"),
     FAILED_EXAM_NOT_EXISTS(3202,"竞赛不存在"),
     FAILED_QUESTION_NOT_EXISTS(3203,"题目不存在"),
-    FAILED_START_TIME_PASSED(3204,"竞赛已开始");
+    FAILED_START_TIME_PASSED(3204,"竞赛已开始"),
+    FAILED_EXAM_HAS_NO_QUESTION(3205,"竞赛中没有题目");
 
     //状态码
     private final int code;

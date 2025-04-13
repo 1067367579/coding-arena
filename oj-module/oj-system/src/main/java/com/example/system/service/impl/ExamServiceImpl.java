@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.common.security.exception.ServiceException;
+import com.example.core.constants.Constants;
 import com.example.core.enums.ResultCode;
 import com.example.system.domain.exam.dto.ExamAddDTO;
 import com.example.system.domain.exam.dto.ExamEditDTO;
@@ -149,6 +150,54 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
                 .eq(ExamQuestion::getExamId, examId)
                 .eq(ExamQuestion::getQuestionId, questionId)
         );
+    }
+
+    @Override
+    public int delete(Long examId) {
+        //校验是否存在竞赛
+        Exam exam = getExamById(examId);
+        if(LocalDateTime.now().isAfter(exam.getStartTime())) {
+            throw new ServiceException(ResultCode.FAILED_START_TIME_PASSED);
+        }
+        examQuestionMapper.delete(
+                new LambdaQueryWrapper<ExamQuestion>()
+                        .eq(ExamQuestion::getExamId,examId)
+        );
+        return examMapper.deleteById(examId);
+    }
+
+    @Override
+    public int cancelPublish(Long examId) {
+        //也是先校验是否存在竞赛
+        Exam exam = getExamById(examId);
+        //校验是否已经开始 已开始的竞赛无法撤销
+        if(LocalDateTime.now().isAfter(exam.getStartTime())) {
+            throw new ServiceException(ResultCode.FAILED_START_TIME_PASSED);
+        }
+        //校验成功 修改字段
+        exam.setStatus(Constants.NOT_PUBLISHED);
+        return examMapper.updateById(exam);
+    }
+
+    @Override
+    public int publish(Long examId) {
+        //检验竞赛是否存在
+        Exam exam = getExamById(examId);
+        //时间检验
+        if(LocalDateTime.now().isAfter(exam.getStartTime())) {
+            throw new ServiceException(ResultCode.FAILED_START_TIME_PASSED);
+        }
+        //检验当前竞赛是否包含题目 若没有题目不可以进行发布
+        List<ExamQuestion> examQuestions = examQuestionMapper.selectList(
+                new LambdaQueryWrapper<ExamQuestion>()
+                        .eq(ExamQuestion::getExamId, examId)
+        );
+        if(CollectionUtils.isEmpty(examQuestions)) {
+            throw new ServiceException(ResultCode.FAILED_EXAM_HAS_NO_QUESTION);
+        }
+        //修改竞赛信息 状态字段
+        exam.setStatus(Constants.IS_PUBLISHED);
+        return examMapper.updateById(exam);
     }
 
     @Transactional

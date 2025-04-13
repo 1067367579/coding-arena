@@ -58,4 +58,22 @@ public class ExamController extends BaseController {
         log.info("删除竞赛中的题目，竞赛ID：{},题目ID:{}",examId,questionId);
         return responseByService(examService.deleteQuestion(examId,questionId));
     }
+
+    @DeleteMapping("/delete")
+    public Result<?> delete(Long examId) {
+        log.info("删除竞赛：{}",examId);
+        return responseByService(examService.delete(examId));
+    }
+
+    @PutMapping("/publish")
+    public Result<?> publish(Long examId) {
+        log.info("发布竞赛：{}",examId);
+        return responseByService(examService.publish(examId));
+    }
+
+    @PutMapping("/publish/cancel")
+    public Result<?> publishCancel(Long examId) {
+        log.info("撤销发布：{}",examId);
+        return responseByService(examService.cancelPublish(examId));
+    }
 }
