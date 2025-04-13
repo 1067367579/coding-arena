@@ -2,14 +2,13 @@ package com.example.system.controller;
 
 import com.example.core.controller.BaseController;
 import com.example.core.domain.PageResult;
+import com.example.core.domain.Result;
 import com.example.system.domain.user.dto.UserQueryDTO;
+import com.example.system.domain.user.dto.UserStatusDTO;
 import com.example.system.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Slf4j
@@ -25,5 +24,11 @@ public class UserController extends BaseController {
         //校验分页参数 没有的话给出默认值
         processPageArgs(userQueryDTO);
         return getPageResult(userService.list(userQueryDTO));
+    }
+
+    @PutMapping("/status/update")
+    public Result<?> updateStatus(@RequestBody UserStatusDTO userStatusDTO) {
+        log.info("修改用户状态:{}",userStatusDTO);
+        return responseByService(userService.updateStatus(userStatusDTO));
     }
 }
