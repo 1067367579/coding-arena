@@ -3,11 +3,13 @@ package com.example.system.domain.question.dto;
 import com.example.core.domain.PageQueryDTO;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.Set;
 
 @Getter
 @Setter
+@ToString
 public class QuestionQueryDTO extends PageQueryDTO {
     //题目标题
     private String title;

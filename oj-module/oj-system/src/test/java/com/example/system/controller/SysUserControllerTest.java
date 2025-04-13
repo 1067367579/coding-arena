@@ -1,15 +1,20 @@
 package com.example.system.controller;
 
+import cn.hutool.core.lang.Snowflake;
+import cn.hutool.core.util.IdUtil;
 import com.example.common.redis.service.RedisService;
-import com.example.system.domain.user.entity.SysUser;
+import com.example.system.OJSystemApplication;
+import com.example.system.domain.admin.entity.SysUser;
 import com.example.system.mapper.SysUserMapper;
 import com.example.system.utils.BCryptUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-//@SpringBootTest(classes = OJSystemApplication.class)
+@SpringBootTest(classes = OJSystemApplication.class)
 @Slf4j
 public class SysUserControllerTest {
 
@@ -60,5 +65,14 @@ public class SysUserControllerTest {
         redisService.setCacheObject(sysUser.getUserAccount(),sysUser);
         SysUser cacheUser = redisService.getCacheObject(sysUser.getUserAccount(), SysUser.class);
         System.out.println(cacheUser);
+    }
+
+    @Test
+    public void snowflake() {
+        Snowflake snowflake = new Snowflake(1, 1);
+        for (int i = 0; i < 10; i++) {
+            Long userId = snowflake.nextId();
+            System.out.println(userId);
+        }
     }
 }

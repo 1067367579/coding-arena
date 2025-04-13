@@ -1,4 +1,4 @@
-package com.example.system.domain.user.entity;
+package com.example.system.domain.admin.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;

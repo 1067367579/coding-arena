@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.junit.jupiter.params.shadow.com.univocity.parsers.annotations.Format;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@ToString
 public class ExamAddDTO {
     @NotEmpty(message = "标题不能为空")
     private String title;
