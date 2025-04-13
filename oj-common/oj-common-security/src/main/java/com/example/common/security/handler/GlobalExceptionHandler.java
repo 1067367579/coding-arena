@@ -33,6 +33,29 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 拦截参数校验异常
+     */
+    @ExceptionHandler(BindException.class)
+    public Result<?> handleBindException(BindException e, HttpServletRequest request) {
+        log.error("请求资源:{}, 发生异常:{}",request.getRequestURI(), e.getMessage());
+        String message = join(e.getAllErrors(),
+                DefaultMessageSourceResolvable::getDefaultMessage,",");
+        return Result.fail(ResultCode.FAILED_PARAMS_VALIDATE.getCode(),message);
+    }
+
+    /**
+     * 拼接所有异常信息
+     */
+    public <E> String join(Collection<E> collection, Function<E,String> function,
+                           CharSequence delimiter) {
+        if(CollectionUtils.isEmpty(collection)) {
+            return "";
+        }
+        return collection.stream().map(function).filter(Objects::nonNull).collect(
+                Collectors.joining(delimiter));
+    }
+
+    /**
      * 拦截运行时异常
      */
     @ExceptionHandler(RuntimeException.class)
@@ -66,29 +89,4 @@ public class GlobalExceptionHandler {
         log.error("请求资源:{}，发生异常：{}", requestURI, e.getMessage());
         return Result.fail(ResultCode.ERROR);
     }
-
-    /**
-     * 拦截参数校验异常
-     */
-    @ExceptionHandler(BindException.class)
-    public Result<?> handleBindException(BindException e, HttpServletRequest request) {
-        log.error("请求资源:{}, 发生异常:{}",request.getRequestURI(), e.getMessage());
-        String message = join(e.getAllErrors(),
-                DefaultMessageSourceResolvable::getDefaultMessage,",");
-        return Result.fail(ResultCode.FAILED_PARAMS_VALIDATE.getCode(),message);
-    }
-
-    /**
-     * 拼接所有异常信息
-     */
-    public <E> String join(Collection<E> collection, Function<E,String> function,
-                           CharSequence delimiter) {
-        if(CollectionUtils.isEmpty(collection)) {
-            return "";
-        }
-        return collection.stream().map(function).filter(Objects::nonNull).collect(
-                Collectors.joining(delimiter));
-    }
-
-
 }
