@@ -75,7 +75,7 @@ public class AuthFilter implements GlobalFilter, Ordered {
         }
         //去redis中校验是否过期
         Long userId = claims.get(JwtConstants.USER_ID,Long.class);
-        String redisKey = RedisConstants.USER_LOGIN_PREFIX+userId;
+        String redisKey = RedisConstants.USER_TOKEN_PREFIX +userId;
         boolean isLogin = redisService.hasKey(redisKey);
         if(!isLogin) {
             //查找不到redis中的key

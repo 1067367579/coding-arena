@@ -80,7 +80,7 @@ public class TokenService {
     }
 
     private static String getRedisKey(Long userId) {
-        return RedisConstants.USER_LOGIN_PREFIX + userId;
+        return RedisConstants.USER_TOKEN_PREFIX + userId;
     }
 
     /**
