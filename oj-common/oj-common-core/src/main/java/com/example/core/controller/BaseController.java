@@ -1,5 +1,6 @@
 package com.example.core.controller;
 
+import com.example.core.constants.HttpConstants;
 import com.example.core.domain.PageQueryDTO;
 import com.example.core.domain.PageResult;
 import com.example.core.domain.Result;
@@ -12,6 +13,10 @@ public class BaseController {
     //对于sql增删改操作成功与否的判断 返回相对应的结果对象
     public Result<?> responseByService(int rows) {
         return rows > 0 ? Result.ok() : Result.fail();
+    }
+
+    public String processToken(String token) {
+        return token.replaceFirst(HttpConstants.AUTHENTICATION_PREFIX,"");
     }
 
     public Result<?> responseByService(boolean result) {

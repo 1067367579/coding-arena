@@ -2,10 +2,10 @@ package com.example.system.controller;
 
 import com.example.core.constants.HttpConstants;
 import com.example.core.controller.BaseController;
+import com.example.core.domain.LoginUser;
 import com.example.core.domain.Result;
 import com.example.system.domain.admin.dto.LoginDTO;
 import com.example.system.domain.admin.dto.SysUserDTO;
-import com.example.system.domain.admin.vo.LoginUserVO;
 import com.example.system.domain.admin.vo.SysUserVO;
 import com.example.system.service.SysUserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -95,14 +95,10 @@ public class SysUserController extends BaseController {
     @ApiResponse(responseCode = "1000", description = "成功获取⽤户信息")
     @ApiResponse(responseCode = "2000", description = "服务繁忙请稍后重试")
     @ApiResponse(responseCode = "3101", description = "⽤户不存在")
-    public Result<LoginUserVO> info(@RequestHeader(HttpConstants.AUTHENTICATION) String token) {
+    public Result<LoginUser> info(@RequestHeader(HttpConstants.AUTHENTICATION) String token) {
         log.info("获取到当前用户令牌为：{}",token);
         token = processToken(token);
         return sysUserService.info(token);
-    }
-
-    private static String processToken(String token) {
-        return token.replaceFirst(HttpConstants.AUTHENTICATION_PREFIX,"");
     }
 
     @DeleteMapping("/logout")

@@ -4,13 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.common.security.exception.ServiceException;
 import com.example.common.security.service.TokenService;
 import com.example.core.constants.RedisConstants;
-import com.example.core.domain.LoginUser;
 import com.example.core.domain.Result;
 import com.example.core.enums.ResultCode;
 import com.example.system.domain.admin.dto.LoginDTO;
 import com.example.system.domain.admin.dto.SysUserDTO;
 import com.example.system.domain.admin.entity.SysUser;
-import com.example.system.domain.admin.vo.LoginUserVO;
 import com.example.system.mapper.SysUserMapper;
 import com.example.system.service.SysUserService;
 import com.example.system.utils.BCryptUtils;
@@ -20,6 +18,7 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import com.example.core.domain.LoginUser;
 
 import java.util.List;
 import java.util.UUID;
@@ -51,7 +50,8 @@ public class SysUserServiceImpl implements SysUserService {
         if(!BCryptUtils.matchesPassword(password,user.getPassword())){
             return Result.fail(ResultCode.FAILED_LOGIN);
         }
-        return Result.ok(tokenService.createToken(user.getUserId(),user.getNickName(),
+        return Result.ok(tokenService.createToken(user.getUserId()
+                ,user.getNickName(),null,
                 RedisConstants.LOGIN_IDENTITY_ADMIN,secret));
     }
 
@@ -80,19 +80,10 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public Result<LoginUserVO> info(String token) {
-        LoginUserVO loginUserVO = new LoginUserVO();
-        try {
-            LoginUser loginUser = tokenService.getLoginUser(token, secret);
-            String nickName = loginUser.getNickName();
-            loginUserVO.setNickName(nickName);
-        } catch (Exception e) {
-            throw new ServiceException(ResultCode.FAILED);
-        }
-        if(loginUserVO.getNickName() == null){
-            throw new ServiceException(ResultCode.FAILED);
-        }
-        return Result.ok(loginUserVO);
+    public Result<LoginUser> info(String token) {
+        LoginUser loginUser = tokenService.getLoginUser(token, secret);
+        return loginUser==null?
+                Result.fail():Result.ok(loginUser);
     }
 
     @Override

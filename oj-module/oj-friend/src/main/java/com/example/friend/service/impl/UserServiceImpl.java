@@ -6,8 +6,8 @@ import com.example.common.message.service.EmailService;
 import com.example.common.redis.service.RedisService;
 import com.example.common.security.exception.ServiceException;
 import com.example.common.security.service.TokenService;
-import com.example.core.constants.JwtConstants;
 import com.example.core.constants.RedisConstants;
+import com.example.core.domain.LoginUser;
 import com.example.core.domain.Result;
 import com.example.core.enums.ResultCode;
 import com.example.friend.domain.User;
@@ -16,7 +16,6 @@ import com.example.friend.domain.dto.UserLoginDTO;
 import com.example.friend.mapper.UserMapper;
 import com.example.friend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -99,7 +98,27 @@ public class UserServiceImpl implements UserService {
         }
         //生成令牌 存入redis中
         return tokenService.createToken(user.getUserId(), user.getNickName(),
+                user.getAvatar(),
                 RedisConstants.LOGIN_IDENTITY_USER, secret);
+    }
+
+    @Override
+    public boolean logout(String token) {
+        //todo 在网关放行不需要登录就可以使用的接口
+        boolean res;
+        try {
+            res = tokenService.deleteLoginUser(token,secret);
+        } catch (Exception e) {
+            throw new ServiceException(ResultCode.FAILED);
+        }
+        return res;
+    }
+
+    @Override
+    public Result<LoginUser> info(String token) {
+        LoginUser loginUser = tokenService.getLoginUser(token, secret);
+        //从令牌中获取出登录用户
+        return loginUser==null?Result.fail():Result.ok(loginUser);
     }
 
     private void checkCode(UserLoginDTO loginDTO) {

@@ -38,6 +38,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BindException.class)
     public Result<?> handleBindException(BindException e, HttpServletRequest request) {
         log.error("请求资源:{}, 发生异常:{}",request.getRequestURI(), e.getMessage());
+        if(e.getMessage().contains("Failed to convert")) {
+            return Result.fail(ResultCode.FAILED_PARAMS_VALIDATE);
+        }
         String message = join(e.getAllErrors(),
                 DefaultMessageSourceResolvable::getDefaultMessage,",");
         return Result.fail(ResultCode.FAILED_PARAMS_VALIDATE.getCode(),message);
