@@ -3,6 +3,7 @@ package com.example.friend.controller;
 import com.example.core.controller.BaseController;
 import com.example.core.domain.Result;
 import com.example.friend.domain.dto.SendCodeDTO;
+import com.example.friend.domain.dto.UserLoginDTO;
 import com.example.friend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,5 +24,12 @@ public class UserController extends BaseController {
     public Result<?> sendCode(@RequestBody SendCodeDTO sendCodeDTO) {
         log.info("根据邮箱号发送短信验证码:{}", sendCodeDTO);
         return userService.sendCode(sendCodeDTO);
+    }
+
+
+    @PostMapping("/login")
+    public Result<?> login(@RequestBody UserLoginDTO loginDTO) {
+        log.info("用户登录：{}",loginDTO);
+        return Result.ok(userService.login(loginDTO));
     }
 }
