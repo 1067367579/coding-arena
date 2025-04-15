@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+//全局异常拦截器
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {

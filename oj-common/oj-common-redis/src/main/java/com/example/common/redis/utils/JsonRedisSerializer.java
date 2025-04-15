@@ -1,4 +1,4 @@
-package com.example.common.redis;
+package com.example.common.redis.utils;
 
 import com.alibaba.fastjson2.JSON;
 import org.springframework.data.redis.serializer.RedisSerializer;

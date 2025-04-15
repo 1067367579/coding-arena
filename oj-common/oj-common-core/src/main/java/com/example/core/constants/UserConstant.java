@@ -1,5 +1,6 @@
 package com.example.core.constants;
 
+//用户默认值常量配置
 public class UserConstant {
     public static final String DEFAULT_USER_AVATAR = "https://mdphotos2.oss-cn-shenzhen.aliyuncs.com/img/default_handsome.jpg";
     public static final String DEFAULT_PHONE = "未知";

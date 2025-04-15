@@ -1,4 +1,4 @@
-package com.example.friend.domain;
+package com.example.friend.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -30,6 +30,7 @@ public class User extends BaseEntity {
     private String introduce;
     private Integer status;
 
+    //插入时生成一个默认的用户对象
     public static User defaultUser(String email) {
         User user = new User();
         user.setEmail(email);

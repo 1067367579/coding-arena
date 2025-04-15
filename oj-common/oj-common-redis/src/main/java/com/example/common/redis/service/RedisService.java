@@ -204,4 +204,22 @@ public class RedisService {
     public Long increment(final String key) {
         return redisTemplate.opsForValue().increment(key);
     }
+
+    //同时获取多个 减少redis交互提高效率
+    public <T> List<T> multiGet(final List<String> keyList,Class<T> clazz) {
+        List list = redisTemplate.opsForValue().multiGet(keyList);
+        if(list == null || list.size() <= 0) {
+            return null;
+        }
+        List<T> result = new ArrayList<>();
+        for (Object item : list) {
+            result.add(JSON.parseObject(String.valueOf(item), clazz));
+        }
+        return result;
+    }
+
+    //同时设置多个 一次性将多个数据放进去
+    public <K,V> void multiSet(Map<? extends K, ? extends V> map) {
+        redisTemplate.opsForValue().multiSet(map);
+    }
 }

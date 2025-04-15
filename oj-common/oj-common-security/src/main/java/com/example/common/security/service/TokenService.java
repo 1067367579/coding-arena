@@ -1,8 +1,8 @@
 package com.example.common.security.service;
 
 import com.example.common.redis.service.RedisService;
+import com.example.core.constants.CacheConstants;
 import com.example.core.constants.JwtConstants;
-import com.example.core.constants.RedisConstants;
 import com.example.core.domain.LoginUser;
 import com.example.core.utils.JWTUtils;
 import io.jsonwebtoken.Claims;
@@ -50,11 +50,11 @@ public class TokenService {
         loginUser.setNickName(nickName);
         loginUser.setAvatar(avatar);
         redisService.setCacheObject(getRedisKey(userId),
-                loginUser,RedisConstants.LOGIN_TTL, TimeUnit.MINUTES);
+                loginUser, CacheConstants.LOGIN_TTL, TimeUnit.MINUTES);
     }
 
     /**
-     * 延长令牌逻辑 这里返回错误不合适，因为用户身份校验已经通过 是后端自己的业务错误
+     * 续签令牌逻辑 这里返回错误不合适，因为用户身份校验已经通过 是后端自己的业务错误
      */
     public void extendToken(String token,String secret) {
         //先判断令牌是否合法 拿出令牌的redis key
@@ -75,15 +75,15 @@ public class TokenService {
         //到redis中获取有效时间
         Long ttl = redisService.getExpire(getRedisKey(userId),TimeUnit.MINUTES);
         //判断ttl是否小于三小时
-        if(ttl <= RedisConstants.LOGIN_EXTEND_TTL) {
+        if(ttl <= CacheConstants.LOGIN_EXTEND_TTL) {
             //延长到十二个小时
-            redisService.expire(getRedisKey(userId),RedisConstants.LOGIN_TTL
+            redisService.expire(getRedisKey(userId), CacheConstants.LOGIN_TTL
                     ,TimeUnit.MINUTES);
         }
     }
 
     private static String getRedisKey(Long userId) {
-        return RedisConstants.USER_TOKEN_PREFIX + userId;
+        return CacheConstants.USER_TOKEN_PREFIX + userId;
     }
 
     /**

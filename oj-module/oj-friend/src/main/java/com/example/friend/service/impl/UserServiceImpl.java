@@ -6,11 +6,11 @@ import com.example.common.message.service.EmailService;
 import com.example.common.redis.service.RedisService;
 import com.example.common.security.exception.ServiceException;
 import com.example.common.security.service.TokenService;
-import com.example.core.constants.RedisConstants;
+import com.example.core.constants.CacheConstants;
 import com.example.core.domain.LoginUser;
 import com.example.core.domain.Result;
 import com.example.core.enums.ResultCode;
-import com.example.friend.domain.User;
+import com.example.friend.domain.entity.User;
 import com.example.friend.domain.dto.SendCodeDTO;
 import com.example.friend.domain.dto.UserLoginDTO;
 import com.example.friend.mapper.UserMapper;
@@ -99,7 +99,7 @@ public class UserServiceImpl implements UserService {
         //生成令牌 存入redis中
         return tokenService.createToken(user.getUserId(), user.getNickName(),
                 user.getAvatar(),
-                RedisConstants.LOGIN_IDENTITY_USER, secret);
+                CacheConstants.LOGIN_IDENTITY_USER, secret);
     }
 
     @Override
@@ -136,10 +136,10 @@ public class UserServiceImpl implements UserService {
     }
 
     private static String getCodeKey(String email) {
-        return RedisConstants.EMAIL_CODE_PREFIX + email;
+        return CacheConstants.EMAIL_CODE_KEY_PREFIX + email;
     }
 
     private static String getCountKey(String email) {
-        return RedisConstants.CODE_TIME_KEY + email;
+        return CacheConstants.CODE_COUNTER_KEY_PREFIX + email;
     }
 }

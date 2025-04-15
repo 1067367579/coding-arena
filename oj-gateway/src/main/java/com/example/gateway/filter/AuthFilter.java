@@ -2,9 +2,9 @@ package com.example.gateway.filter;
 
 import com.alibaba.fastjson2.JSON;
 import com.example.common.redis.service.RedisService;
+import com.example.core.constants.CacheConstants;
 import com.example.core.constants.HttpConstants;
 import com.example.core.constants.JwtConstants;
-import com.example.core.constants.RedisConstants;
 import com.example.core.domain.LoginUser;
 import com.example.core.domain.Result;
 import com.example.core.enums.ResultCode;
@@ -75,7 +75,7 @@ public class AuthFilter implements GlobalFilter, Ordered {
         }
         //去redis中校验是否过期
         Long userId = claims.get(JwtConstants.USER_ID,Long.class);
-        String redisKey = RedisConstants.USER_TOKEN_PREFIX +userId;
+        String redisKey = CacheConstants.USER_TOKEN_PREFIX +userId;
         boolean isLogin = redisService.hasKey(redisKey);
         if(!isLogin) {
             //查找不到redis中的key
@@ -84,11 +84,11 @@ public class AuthFilter implements GlobalFilter, Ordered {
         LoginUser loginUser = redisService.getCacheObject(redisKey, LoginUser.class);
         //查找到用户详细信息 进行身份与路径匹配校验 只有匹配才通过
         if(url.contains(HttpConstants.SYSTEM_URL_PREFIX) &&
-            !RedisConstants.LOGIN_IDENTITY_ADMIN.equals(loginUser.getIdentity())) {
+            !CacheConstants.LOGIN_IDENTITY_ADMIN.equals(loginUser.getIdentity())) {
             return unauthorizedResponse(exchange,"令牌验证失败");
         }
         if(url.contains(HttpConstants.FRIEND_URL_PREFIX) &&
-                !RedisConstants.LOGIN_IDENTITY_USER.equals(loginUser.getIdentity())) {
+                !CacheConstants.LOGIN_IDENTITY_USER.equals(loginUser.getIdentity())) {
             return unauthorizedResponse(exchange,"令牌验证失败");
         }
         return chain.filter(exchange);

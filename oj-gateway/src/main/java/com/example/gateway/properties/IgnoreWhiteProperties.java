@@ -14,6 +14,7 @@ import java.util.List;
 @RefreshScope
 @Configuration
 @ConfigurationProperties(prefix = "security.ignore")
+//读取白名单配置类
 public class IgnoreWhiteProperties {
 
     /**

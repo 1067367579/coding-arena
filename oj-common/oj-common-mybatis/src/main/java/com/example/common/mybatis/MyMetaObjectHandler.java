@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
+//MyBatisPlus的SQL操作拦截器
 @Component
 public class MyMetaObjectHandler implements MetaObjectHandler {
 

@@ -3,7 +3,7 @@ package com.example.system.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.common.security.exception.ServiceException;
 import com.example.common.security.service.TokenService;
-import com.example.core.constants.RedisConstants;
+import com.example.core.constants.CacheConstants;
 import com.example.core.domain.Result;
 import com.example.core.enums.ResultCode;
 import com.example.system.domain.admin.dto.LoginDTO;
@@ -52,7 +52,7 @@ public class SysUserServiceImpl implements SysUserService {
         }
         return Result.ok(tokenService.createToken(user.getUserId()
                 ,user.getNickName(),null,
-                RedisConstants.LOGIN_IDENTITY_ADMIN,secret));
+                CacheConstants.LOGIN_IDENTITY_ADMIN,secret));
     }
 
     @Override

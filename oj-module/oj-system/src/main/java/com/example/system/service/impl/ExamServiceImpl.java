@@ -17,6 +17,7 @@ import com.example.system.domain.exam.vo.ExamQueryVO;
 import com.example.system.domain.exam.vo.ExamVO;
 import com.example.system.domain.question.entity.Question;
 import com.example.system.domain.question.vo.QuestionQueryVO;
+import com.example.system.manager.ExamCacheManager;
 import com.example.system.mapper.ExamMapper;
 import com.example.system.mapper.ExamQuestionMapper;
 import com.example.system.mapper.QuestionMapper;
@@ -42,6 +43,8 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
     private QuestionMapper questionMapper;
     @Autowired
     private ExamQuestionMapper examQuestionMapper;
+    @Autowired
+    private ExamCacheManager examCacheManager;
 
     @Override
     public List<ExamQueryVO> list(ExamQueryDTO examQueryDTO) {
@@ -170,12 +173,14 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
     public int cancelPublish(Long examId) {
         //也是先校验是否存在竞赛
         Exam exam = getExamById(examId);
-        //校验是否已经开始 已开始的竞赛无法撤销
-        if(LocalDateTime.now().isAfter(exam.getStartTime())) {
-            throw new ServiceException(ResultCode.FAILED_START_TIME_PASSED);
+        //校验是否已经开始 已完赛的竞赛无法撤销
+        if(LocalDateTime.now().isAfter(exam.getEndTime())) {
+            throw new ServiceException(ResultCode.FAILED_END_TIME_PASSED);
         }
         //校验成功 修改字段
         exam.setStatus(Constants.NOT_PUBLISHED);
+        //取消发布 调用deleteCache
+        examCacheManager.deleteCache(examId);
         return examMapper.updateById(exam);
     }
 
@@ -183,9 +188,9 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
     public int publish(Long examId) {
         //检验竞赛是否存在
         Exam exam = getExamById(examId);
-        //时间检验
-        if(LocalDateTime.now().isAfter(exam.getStartTime())) {
-            throw new ServiceException(ResultCode.FAILED_START_TIME_PASSED);
+        //时间检验 已完赛或者是已经开赛的不可发布 不可进行操作
+        if(LocalDateTime.now().isAfter(exam.getEndTime())) {
+            throw new ServiceException(ResultCode.FAILED_END_TIME_PASSED);
         }
         //检验当前竞赛是否包含题目 若没有题目不可以进行发布
         List<ExamQuestion> examQuestions = examQuestionMapper.selectList(
@@ -197,6 +202,8 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
         }
         //修改竞赛信息 状态字段
         exam.setStatus(Constants.IS_PUBLISHED);
+        //将竞赛数据加入到缓存中
+        examCacheManager.addCache(exam);
         return examMapper.updateById(exam);
     }
 

@@ -1,6 +1,6 @@
 package com.example.common.redis.config;
 
-import com.example.common.redis.JsonRedisSerializer;
+import com.example.common.redis.utils.JsonRedisSerializer;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.context.annotation.Bean;

@@ -3,6 +3,7 @@ package com.example.common.security.exception;
 import com.example.core.enums.ResultCode;
 import lombok.Getter;
 
+//业务异常类
 @Getter
 public class ServiceException extends RuntimeException {
 

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+//邮件发送服务
 public class EmailService {
 
     @Autowired
@@ -17,6 +18,7 @@ public class EmailService {
     @Value("${spring.mail.from}")
     private String from;
 
+    //邮件发送方法
     public void sendSimpleMail(String to,String code) {
         log.info("负责发送的邮箱为：{}",from);
         SimpleMailMessage message = new SimpleMailMessage();

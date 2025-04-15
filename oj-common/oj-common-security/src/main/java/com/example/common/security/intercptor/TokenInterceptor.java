@@ -23,7 +23,7 @@ public class TokenInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
                              Object handler) throws Exception {
-        //已经在filter中经过了身份校验 获取token
+        //已经在filter中经过了身份校验 获取token 然后进行续签操作
         tokenService.extendToken(getToken(request),secret);
         return true;
     }

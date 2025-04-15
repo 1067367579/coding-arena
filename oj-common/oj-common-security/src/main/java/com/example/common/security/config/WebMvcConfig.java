@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+//SpringMVC拦截器配置类
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
@@ -17,6 +18,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .addPathPatterns("/**")
                 .excludePathPatterns("/**/login")
                 .excludePathPatterns("/**/code")
+                .excludePathPatterns("/**/semiLogin/**")
                 .excludePathPatterns("/**/swagger-ui/**")
                 .excludePathPatterns("/v3/api-docs");
     }
