@@ -1,6 +1,7 @@
 package com.example.friend.domain.dto;
 
 import com.example.core.domain.PageQueryDTO;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Getter;
@@ -15,9 +16,10 @@ import java.time.LocalDateTime;
 @ToString
 public class ExamQueryDTO extends PageQueryDTO {
 
-    private String title;
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endTime;
     //是获取未完赛还是历史竞赛

@@ -3,6 +3,7 @@ package com.example.friend.manager;
 import cn.hutool.core.collection.CollUtil;
 import com.example.common.redis.service.RedisService;
 import com.example.core.constants.CacheConstants;
+import com.example.core.domain.PageResult;
 import com.example.friend.domain.dto.ExamQueryDTO;
 import com.example.core.enums.ExamListType;
 import com.example.friend.domain.vo.ExamQueryVO;
@@ -10,11 +11,13 @@ import com.example.friend.mapper.ExamMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import reactor.util.retry.Retry;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 @Component
 public class ExamCacheManager {
@@ -25,22 +28,59 @@ public class ExamCacheManager {
     @Autowired
     private RedisService redisService;
 
-    public List<ExamQueryVO> getExamVOList(ExamQueryDTO examQueryDTO) {
-        //手动处理分页参数 得到查询范围
+    public PageResult getExamVOList(ExamQueryDTO examQueryDTO) {
+        //手动处理分页参数 得到最终的结果范围
         int start = (examQueryDTO.getPageNum()-1) * examQueryDTO.getPageSize();
         int end = start + examQueryDTO.getPageSize() - 1;
+        //获得List的key
         String examListKey = getExamListKey(examQueryDTO.getType());
-        List<Long> examIds = redisService.getCacheListByRange(examListKey,start,end,Long.class);
-        List<ExamQueryVO> voList = assembleExamVOList(examIds);
-        if(CollectionUtils.isEmpty(examIds) || CollectionUtils.isEmpty(voList)){
-            //列表中该段序列没有缓存 需要重新刷新缓存 从数据库中获取全量数据后 再从缓存中获取
-            refreshCache(examQueryDTO.getType());
+        //全量长度
+        Long listSize = getListSize(examQueryDTO.getType());
+        //分开处理有时间筛选和没时间筛选的情况
+        List<Long> examIds = null;
+        List<ExamQueryVO> voList = null;
+        if(examQueryDTO.getStartTime() == null &&
+        examQueryDTO.getEndTime() == null){
+            //没有时间筛选查询 直接分页 开始时间筛选和结束时间必须一起存在
             examIds = redisService.getCacheListByRange(examListKey,start,end,Long.class);
             voList = assembleExamVOList(examIds);
-            return voList;
+            if(CollectionUtils.isEmpty(examIds) || CollectionUtils.isEmpty(voList)){
+                //列表中该段序列没有缓存 需要重新刷新缓存 从数据库中获取全量数据后 再从缓存中获取
+                refreshCache(examQueryDTO.getType());
+                examIds = redisService.getCacheListByRange(examListKey,start,end,Long.class);
+                voList = assembleExamVOList(examIds);
+                return PageResult.success(voList,listSize);
+            }
+            return PageResult.success(voList,listSize);
+        } else {
+            //有时间筛选查询 先查出来全量 再进行分页
+            examIds = redisService.getCacheListByRange(examListKey,0,listSize,Long.class);
+            voList = assembleExamVOList(examIds);
+            voList = voList.stream().filter(examQueryVO -> {
+                boolean startTime = true;
+                boolean endTime = true;
+                if(examQueryVO.getStartTime()!=null) {
+                    //开始时间条件
+                    startTime = examQueryVO.getStartTime().isAfter(examQueryDTO.getStartTime());
+                }
+                if(examQueryVO.getEndTime()!=null) {
+                    endTime = examQueryVO.getEndTime().isBefore(examQueryDTO.getEndTime());
+                }
+                return startTime && endTime;
+            }).toList();
+            long resTotal = (long) voList.size();
+            //分页参数设置
+            if(start>=voList.size()){
+                return PageResult.success(List.of(),resTotal);
+            }
+            if(end>voList.size()){
+                end = voList.size();
+            }
+            //分页
+            voList = voList.subList(start,end);
+            //返回结果
+            return PageResult.success(voList,resTotal);
         }
-        //已经有缓存 直接返回即可
-        return voList;
     }
 
     public List<ExamQueryVO> assembleExamVOList(List<Long> examIds) {
