@@ -1,6 +1,5 @@
-package com.example.friend.domain.enums;
+package com.example.core.enums;
 
-import lombok.Data;
 import lombok.Getter;
 
 

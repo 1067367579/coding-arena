@@ -1,7 +1,16 @@
-server:
-  port: 9094
 # Spring
 spring:
   application:
     # 应⽤名称
     name: oj-job
+  profiles:
+      active: local
+  cloud:
+    nacos:
+      discovery:
+        namespace: ff584b75-4fce-4648-a046-34fd21013463
+        server-addr: http://114.132.235.199:8848
+      config:
+        namespace: ff584b75-4fce-4648-a046-34fd21013463
+        server-addr: http://114.132.235.199:8848
+        file-extension: yaml

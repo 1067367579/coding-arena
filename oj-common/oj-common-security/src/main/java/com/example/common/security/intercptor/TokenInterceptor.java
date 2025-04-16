@@ -6,12 +6,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 //这个拦截器是绑定在具体的某个微服务上的 并非网关 每个微服务都绑定这个拦截器 这个bean在引用的微服务中都有
 //注意拦截器还需要在WebMvcConfiguration中挂载
 @Component
+@RefreshScope
 public class TokenInterceptor implements HandlerInterceptor {
 
     @Autowired

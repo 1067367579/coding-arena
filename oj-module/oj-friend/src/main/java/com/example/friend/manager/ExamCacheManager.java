@@ -4,7 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import com.example.common.redis.service.RedisService;
 import com.example.core.constants.CacheConstants;
 import com.example.friend.domain.dto.ExamQueryDTO;
-import com.example.friend.domain.enums.ExamListType;
+import com.example.core.enums.ExamListType;
 import com.example.friend.domain.vo.ExamQueryVO;
 import com.example.friend.mapper.ExamMapper;
 import org.springframework.beans.factory.annotation.Autowired;
