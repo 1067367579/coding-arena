@@ -1,7 +1,6 @@
 package com.example.friend.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.example.friend.domain.dto.ExamQueryDTO;
 import com.example.friend.domain.entity.UserExam;
 import com.example.friend.domain.vo.ExamQueryVO;
 import org.apache.ibatis.annotations.Mapper;

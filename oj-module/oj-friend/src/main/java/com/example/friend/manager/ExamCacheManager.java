@@ -23,7 +23,6 @@ public class ExamCacheManager {
 
     @Autowired
     private ExamMapper examMapper;
-
     @Autowired
     private RedisService redisService;
     @Autowired
@@ -42,8 +41,7 @@ public class ExamCacheManager {
         List<ExamQueryVO> voList;
         if(examQueryDTO.getStartTime() == null &&
         examQueryDTO.getEndTime() == null){
-            //redis获取区间的操作 左闭右闭
-            //没有时间筛选查询 直接分页 开始时间筛选和结束时间必须一起存在
+            //redis获取区间的操作 左闭右闭 没有时间筛选查询 直接分页 开始时间筛选和结束时间必须一起存在
             examIds = redisService.getCacheListByRange(examListKey,start,end,Long.class);
             voList = assembleExamVOList(examIds);
             if(CollectionUtils.isEmpty(examIds) || CollectionUtils.isEmpty(voList)){
@@ -62,7 +60,6 @@ public class ExamCacheManager {
                 boolean startTime = true;
                 boolean endTime = true;
                 if(examQueryDTO.getStartTime()!=null) {
-                    //开始时间条件
                     startTime = examQueryVO.getStartTime().isAfter(examQueryDTO.getStartTime())
                     || examQueryVO.getStartTime().equals(examQueryDTO.getStartTime());
                 }
@@ -155,5 +152,21 @@ public class ExamCacheManager {
     //获取redis中的exam数据对应的key
     public String getDetailKey(Long examId) {
         return CacheConstants.EXAM_DETAIL_KEY_PREFIX+examId;
+    }
+
+    //从用户报名竞赛列表中取出所有的报名竞赛ID 通过这个来判断
+    public List<Long> getEnterExamList(Long userId) {
+        List<Long> enterExamIds = redisService.getCacheListByRange(
+                getExamListKey(ExamListType.EXAM_MY_LIST.getValue(),userId),
+                0,-1, Long.class
+        );
+        if(CollectionUtils.isEmpty(enterExamIds)) {
+            refreshCache(ExamListType.EXAM_MY_LIST.getValue(),userId);
+            return redisService.getCacheListByRange(
+                    getExamListKey(ExamListType.EXAM_MY_LIST.getValue(),userId),
+                    0,-1, Long.class
+            );
+        }
+        return enterExamIds;
     }
 }

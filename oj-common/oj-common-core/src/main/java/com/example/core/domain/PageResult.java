@@ -23,7 +23,7 @@ public class PageResult {
         return pageResult;
     }
 
-    public static PageResult success(List<?> rows, long total) {
+    public static <T> PageResult success(List<T> rows, long total) {
         PageResult pageResult = new PageResult();
         pageResult.setCode(ResultCode.SUCCESS.getCode());
         pageResult.setMsg(ResultCode.SUCCESS.getMsg());

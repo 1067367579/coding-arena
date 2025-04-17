@@ -17,4 +17,6 @@ public class ExamQueryVO {
     private LocalDateTime startTime;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endTime;
+    //用户是否已经报名
+    private boolean enter;
 }
