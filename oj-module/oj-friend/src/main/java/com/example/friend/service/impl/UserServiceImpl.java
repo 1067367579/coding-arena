@@ -10,9 +10,9 @@ import com.example.core.constants.CacheConstants;
 import com.example.core.domain.LoginUser;
 import com.example.core.domain.Result;
 import com.example.core.enums.ResultCode;
-import com.example.friend.domain.entity.User;
 import com.example.friend.domain.dto.SendCodeDTO;
 import com.example.friend.domain.dto.UserLoginDTO;
+import com.example.friend.domain.entity.User;
 import com.example.friend.mapper.UserMapper;
 import com.example.friend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -104,7 +104,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean logout(String token) {
-        //todo 在网关放行不需要登录就可以使用的接口
+        //在网关放行不需要登录就可以使用的接口 接口标注了semiLogin
         boolean res;
         try {
             res = tokenService.deleteLoginUser(token,secret);

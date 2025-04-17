@@ -11,6 +11,7 @@
         tb_exam.end_time
         from tb_exam
         where
+            /*设置为索引 每次查询都需要此条件*/
             status = 1
             <if test="startTime!=null">
                 and start_time &gt;= #{startTime}

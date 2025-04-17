@@ -7,16 +7,14 @@ import com.example.core.domain.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
-@TableName("tb_exam")
-public class Exam extends BaseEntity {
-    @TableId(value = "exam_id", type = IdType.ASSIGN_ID)
+@TableName("tb_user_exam")
+public class UserExam extends BaseEntity {
+    @TableId(value = "user_exam_id",type = IdType.ASSIGN_ID)
+    private Long userExamId;
     private Long examId;
-    private String title;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
-    private Integer status;
+    private Long userId;
+    private Integer score;
+    private Integer examRank;
 }

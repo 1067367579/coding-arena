@@ -36,5 +36,5 @@ public class ExamCacheManager {
         return examId + CacheConstants.EXAM_DETAIL_KEY_PREFIX;
     }
 
-    //todo 已结束的竞赛进行处理 移动缓存 之后再完成
+    //已结束的竞赛进行处理 移动缓存 使用xxl-job重新刷新缓存定时处理
 }

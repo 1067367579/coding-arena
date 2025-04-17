@@ -1,10 +1,7 @@
 package com.example.common.message.config;
 
-import com.aliyun.teaopenapi.models.Config;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import com.aliyun.dysmsapi20170525.Client;
-import org.springframework.context.annotation.Configuration;
+import com.aliyun.teaopenapi.models.Config;
 
 //@Configuration
 public class AliSmsConfig {

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.friend.mapper.UserExamMapper">
+    <select id="listMyExam" resultType="com.example.friend.domain.vo.ExamQueryVO">
+        select tb_exam.exam_id,
+               tb_exam.title,
+               tb_exam.start_time,
+               tb_exam.end_time
+        from tb_user_exam
+                 left join tb_exam
+                           on tb_user_exam.exam_id = tb_exam.exam_id
+        where tb_exam.status = 1
+          and tb_user_exam.user_id = #{userId}
+        order by tb_user_exam.create_time desc;
+    </select>
+</mapper>

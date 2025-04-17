@@ -39,5 +39,11 @@ public class BaseController {
         if(pageQueryDTO.getPageSize() == null) {
             pageQueryDTO.setPageSize(10);
         }
+        if(pageQueryDTO.getPageNum() <= 0) {
+            pageQueryDTO.setPageNum(1);
+        }
+        if(pageQueryDTO.getPageSize() <= 0) {
+            pageQueryDTO.setPageSize(10);
+        }
     }
 }

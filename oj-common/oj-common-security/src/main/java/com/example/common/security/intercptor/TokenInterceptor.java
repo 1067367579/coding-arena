@@ -2,6 +2,9 @@ package com.example.common.security.intercptor;
 
 import com.example.common.security.service.TokenService;
 import com.example.core.constants.HttpConstants;
+import com.example.core.constants.JwtConstants;
+import com.example.core.utils.ThreadLocalUtil;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +28,14 @@ public class TokenInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
                              Object handler) throws Exception {
+        String token = getToken(request);
+        //拿Claims 避免多次解析token
+        Claims claims = tokenService.getClaims(token, secret);
         //已经在filter中经过了身份校验 获取token 然后进行续签操作
-        tokenService.extendToken(getToken(request),secret);
+        tokenService.extendToken(claims);
+        //获取出来用户ID的信息 然后设置ThreadLocal
+        Long userId = tokenService.getUserKey(claims);
+        ThreadLocalUtil.set(JwtConstants.USER_ID,userId);
         return true;
     }
 
@@ -36,4 +45,9 @@ public class TokenInterceptor implements HandlerInterceptor {
         return token;
     }
 
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        //此处是请求完成响应的时候执行的逻辑 数据传到前端之后的回调 此处要清理本次线程的副本
+        ThreadLocalUtil.remove();
+    }
 }

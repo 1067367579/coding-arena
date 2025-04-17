@@ -1,7 +1,6 @@
 package com.example.system.controller;
 
 import cn.hutool.core.lang.Snowflake;
-import cn.hutool.core.util.IdUtil;
 import com.example.common.redis.service.RedisService;
 import com.example.system.OJSystemApplication;
 import com.example.system.domain.admin.entity.SysUser;

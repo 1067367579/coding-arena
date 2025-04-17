@@ -56,21 +56,9 @@ public class TokenService {
     /**
      * 续签令牌逻辑 这里返回错误不合适，因为用户身份校验已经通过 是后端自己的业务错误
      */
-    public void extendToken(String token,String secret) {
+    public void extendToken(Claims claims) {
         //先判断令牌是否合法 拿出令牌的redis key
-        Claims claims;
-        try {
-             claims = JWTUtils.parseToken(token, secret);
-             if(claims == null) {
-                 //延长失败 直接return 后端业务逻辑错误 需要记录日志 此处延长失败不影响请求的处理
-                 log.error("解析Token出现异常,解析出的claims为null");
-                 return;
-             }
-        } catch (Exception ex) {
-            //直接return
-            log.error("解析Token出现异常，{}",ex.getMessage());
-            return;
-        }
+        if (claims == null) return;
         Long userId = claims.get(JwtConstants.USER_ID, Long.class);
         //到redis中获取有效时间
         Long ttl = redisService.getExpire(getRedisKey(userId),TimeUnit.MINUTES);
@@ -80,6 +68,23 @@ public class TokenService {
             redisService.expire(getRedisKey(userId), CacheConstants.LOGIN_TTL
                     ,TimeUnit.MINUTES);
         }
+    }
+
+    public Claims getClaims(String token,String secret) {
+        Claims claims;
+        try {
+             claims = JWTUtils.parseToken(token, secret);
+             if(claims == null) {
+                 //延长失败 直接return 后端业务逻辑错误 需要记录日志 此处延长失败不影响请求的处理
+                 log.error("解析Token出现异常,解析出的claims为null");
+                 return null;
+             }
+        } catch (Exception ex) {
+            //直接return
+            log.error("解析Token出现异常，{}",ex.getMessage());
+            return null;
+        }
+        return claims;
     }
 
     private static String getRedisKey(Long userId) {
@@ -98,7 +103,11 @@ public class TokenService {
      * 从token中获取用户唯一标识
      */
     public Long getUserKey(String token, String secret) {
-        Claims claims = JWTUtils.parseToken(token, secret);
+        Claims claims = getClaims(token, secret);
+        return claims.get(JwtConstants.USER_ID, Long.class);
+    }
+
+    public Long getUserKey(Claims claims) {
         return claims.get(JwtConstants.USER_ID, Long.class);
     }
 

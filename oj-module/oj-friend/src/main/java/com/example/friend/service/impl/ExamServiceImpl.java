@@ -33,11 +33,11 @@ public class ExamServiceImpl implements ExamService {
         //新发布的竞赛会放到缓存中 但是还有老数据 还是应该存到redis中
         //查询的时候做处理 redis中查不到 到数据库中查出 刷新缓存 返回
         //之后再查就可以从redis里面查得到了 针对性刷新
-        Long listSize = examCacheManager.getListSize(examQueryDTO.getType());
+        Long listSize = examCacheManager.getListSize(examQueryDTO.getType(),null);
         if(listSize == null || listSize == 0) {
             //没有数据的时候 去数据库里面刷新数据
-            examCacheManager.refreshCache(examQueryDTO.getType());
+            examCacheManager.refreshCache(examQueryDTO.getType(),null);
         }
-        return examCacheManager.getExamVOList(examQueryDTO);
+        return examCacheManager.getExamVOList(examQueryDTO,null);
     }
 }

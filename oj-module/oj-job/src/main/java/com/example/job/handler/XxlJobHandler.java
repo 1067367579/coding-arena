@@ -1,11 +1,9 @@
 package com.example.job.handler;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.common.redis.service.RedisService;
 import com.example.core.constants.CacheConstants;
 import com.example.core.enums.ExamListType;
 import com.example.job.domain.dto.ExamQueryDTO;
-import com.example.job.domain.entity.Exam;
 import com.example.job.domain.vo.ExamQueryVO;
 import com.example.job.mapper.ExamMapper;
 import com.xxl.job.core.handler.annotation.XxlJob;
@@ -14,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

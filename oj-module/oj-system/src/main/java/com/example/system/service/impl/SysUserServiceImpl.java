@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.common.security.exception.ServiceException;
 import com.example.common.security.service.TokenService;
 import com.example.core.constants.CacheConstants;
+import com.example.core.domain.LoginUser;
 import com.example.core.domain.Result;
 import com.example.core.enums.ResultCode;
 import com.example.system.domain.admin.dto.LoginDTO;
@@ -18,7 +19,6 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import com.example.core.domain.LoginUser;
 
 import java.util.List;
 import java.util.UUID;

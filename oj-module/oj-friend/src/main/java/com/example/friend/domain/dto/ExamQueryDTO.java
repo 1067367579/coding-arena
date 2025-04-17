@@ -23,8 +23,8 @@ public class ExamQueryDTO extends PageQueryDTO {
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endTime;
     //是获取未完赛还是历史竞赛
-    @Min(value = 0,message = "获取类型只能是0或者1")
-    @Max(value = 1,message = "获取类型只能是0或者1")
+    @Min(value = 0,message = "获取类型只能是0,1,2")
+    @Max(value = 2,message = "获取类型只能是0,1,2")
     private Integer type;
 
 }

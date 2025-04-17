@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.junit.jupiter.params.shadow.com.univocity.parsers.annotations.Format;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
