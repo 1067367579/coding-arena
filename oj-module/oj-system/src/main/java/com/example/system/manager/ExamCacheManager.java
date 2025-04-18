@@ -33,7 +33,7 @@ public class ExamCacheManager {
 
     //获取redis中的exam数据对应的key
     public String getDetailKey(Long examId) {
-        return examId + CacheConstants.EXAM_DETAIL_KEY_PREFIX;
+        return CacheConstants.EXAM_DETAIL_KEY_PREFIX+examId;
     }
 
     //已结束的竞赛进行处理 移动缓存 使用xxl-job重新刷新缓存定时处理

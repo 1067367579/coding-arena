@@ -10,8 +10,10 @@ import com.example.system.domain.question.dto.QuestionAddDTO;
 import com.example.system.domain.question.dto.QuestionEditDTO;
 import com.example.system.domain.question.dto.QuestionQueryDTO;
 import com.example.system.domain.question.entity.Question;
+import com.example.system.domain.question.entity.QuestionES;
 import com.example.system.domain.question.vo.QuestionQueryVO;
 import com.example.system.domain.question.vo.QuestionVO;
+import com.example.system.elasticsearch.QuestionRepository;
 import com.example.system.mapper.QuestionMapper;
 import com.example.system.service.QuestionService;
 import com.github.pagehelper.PageHelper;
@@ -32,6 +34,10 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Autowired
     private QuestionMapper questionMapper;
+
+    //维护ES和数据库的一致性
+    @Autowired
+    private QuestionRepository questionRepository;
 
     @Override
     public List<QuestionQueryVO> getQuestionList(QuestionQueryDTO questionQueryDTO) {
@@ -54,7 +60,15 @@ public class QuestionServiceImpl implements QuestionService {
         isDuplicated(questionAddDTO.getTitle(),null);
         Question question = new Question();
         BeanUtil.copyProperties(questionAddDTO,question);
-        return questionMapper.insert(question);
+        int result = questionMapper.insert(question);
+        if(result > 0){
+            //插入成功之后 操作ES
+            QuestionES questionES = new QuestionES();
+            BeanUtil.copyProperties(question,questionES);
+            log.info("将数据插入ES:{}",questionES);
+            questionRepository.save(questionES);
+        }
+        return result;
     }
 
     //判断标题是否重复 分两种情况 新建时 和 后续编辑时 编辑的时候需要判断ID
@@ -97,7 +111,14 @@ public class QuestionServiceImpl implements QuestionService {
         question.setMainFunc(editDTO.getMainFunc());
         question.setTimeLimit(editDTO.getTimeLimit());
         question.setSpaceLimit(editDTO.getSpaceLimit());
-        return questionMapper.updateById(question);
+        int result = questionMapper.updateById(question);
+        if(result > 0){
+            QuestionES questionES = new QuestionES();
+            BeanUtil.copyProperties(question,questionES);
+            //ES会自动进行更新 根据ID
+            questionRepository.save(questionES);
+        }
+        return result;
     }
 
     @Override
@@ -107,6 +128,12 @@ public class QuestionServiceImpl implements QuestionService {
         if(question == null){
             throw new ServiceException(ResultCode.FAILED_NOT_EXISTS);
         }
-        return questionMapper.deleteById(questionId);
+        int result = questionMapper.deleteById(questionId);
+        if(result > 0){
+            QuestionES questionES = new QuestionES();
+            BeanUtil.copyProperties(question,questionES);
+            questionRepository.delete(questionES);
+        }
+        return result;
     }
 }

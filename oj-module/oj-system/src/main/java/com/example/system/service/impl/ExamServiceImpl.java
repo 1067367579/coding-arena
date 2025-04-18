@@ -85,7 +85,11 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
     @Override
     public boolean addQuestion(ExamQuestionDTO dto) {
         //竞赛是否存在
-        getExamById(dto.getExamId());
+        Exam exam = getExamById(dto.getExamId());
+        //校验是否是撤销发布状态 未发布才能操作
+        if(!exam.getStatus().equals(Constants.NOT_PUBLISHED)) {
+            throw new ServiceException(ResultCode.FAILED_STATUS_ERROR);
+        }
         //问题是否都存在 只有都存在才合法
         //如果传过来就是空的 直接返回 不再执行下面的逻辑
         if(CollectionUtils.isEmpty(dto.getQuestionIds())) {
@@ -131,6 +135,10 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
     public int edit(ExamEditDTO examEditDTO) {
         //判断是否有这个竞赛
         Exam exam = getExamById(examEditDTO.getExamId());
+        //校验是否是撤销发布状态 未发布才能操作
+        if(!exam.getStatus().equals(Constants.NOT_PUBLISHED)) {
+            throw new ServiceException(ResultCode.FAILED_STATUS_ERROR);
+        }
         //判断参数是否有问题
         checkDTO(examEditDTO,examEditDTO.getExamId());
         //对竞赛信息编辑
@@ -144,6 +152,10 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
     public int deleteQuestion(Long examId, Long questionId) {
         //还是一样先要校验exam 获取exam 然后再对其是否开赛做出判断
         Exam exam = getExamById(examId);
+        //校验是否是撤销发布状态 未发布才能操作
+        if(!exam.getStatus().equals(Constants.NOT_PUBLISHED)) {
+            throw new ServiceException(ResultCode.FAILED_STATUS_ERROR);
+        }
         //开赛了之后就无法修改了
         if(LocalDateTime.now().isAfter(exam.getStartTime())) {
             throw new ServiceException(ResultCode.FAILED_START_TIME_PASSED);
@@ -159,6 +171,10 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
     public int delete(Long examId) {
         //校验是否存在竞赛
         Exam exam = getExamById(examId);
+        //校验是否是撤销发布状态 未发布才能操作
+        if(!exam.getStatus().equals(Constants.NOT_PUBLISHED)) {
+            throw new ServiceException(ResultCode.FAILED_STATUS_ERROR);
+        }
         if(LocalDateTime.now().isAfter(exam.getStartTime())) {
             throw new ServiceException(ResultCode.FAILED_START_TIME_PASSED);
         }
@@ -169,6 +185,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
         return examMapper.deleteById(examId);
     }
 
+    //只有在未发布状态 才能够进行修改 从而保证一致性
     @Override
     public int cancelPublish(Long examId) {
         //也是先校验是否存在竞赛

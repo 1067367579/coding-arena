@@ -30,7 +30,7 @@ public enum ResultCode {
     FAILED_CODE_INVALID(3302,"验证码失效"),
     FAILED_CODE_WRONG(3303,"验证码错误"),
     FAILED_END_TIME_PASSED(3204,"竞赛已结束"),
-    FAILED_ALREADY_ENTER(3301,"用户已报名");
+    FAILED_ALREADY_ENTER(3301,"用户已报名"), FAILED_STATUS_ERROR(3206,"未发布状态才能修改题目");
 
     //状态码
     private final int code;
