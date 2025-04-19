@@ -19,6 +19,8 @@ public class FileServiceImpl implements FileService {
     public OSSResult upload(MultipartFile file) {
         try {
             return ossService.uploadFile(file);
+        } catch (ServiceException serviceException) {
+            throw serviceException;
         } catch (Exception ex) {
             throw new ServiceException(ResultCode.FAILED_FILE_UPLOAD);
         }

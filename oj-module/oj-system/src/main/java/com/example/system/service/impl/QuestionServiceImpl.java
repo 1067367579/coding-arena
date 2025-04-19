@@ -14,6 +14,7 @@ import com.example.system.domain.question.entity.QuestionES;
 import com.example.system.domain.question.vo.QuestionQueryVO;
 import com.example.system.domain.question.vo.QuestionVO;
 import com.example.system.elasticsearch.QuestionRepository;
+import com.example.system.manager.QuestionCacheManager;
 import com.example.system.mapper.QuestionMapper;
 import com.example.system.service.QuestionService;
 import com.github.pagehelper.PageHelper;
@@ -38,6 +39,8 @@ public class QuestionServiceImpl implements QuestionService {
     //维护ES和数据库的一致性
     @Autowired
     private QuestionRepository questionRepository;
+    @Autowired
+    private QuestionCacheManager questionCacheManager;
 
     @Override
     public List<QuestionQueryVO> getQuestionList(QuestionQueryDTO questionQueryDTO) {
@@ -67,6 +70,8 @@ public class QuestionServiceImpl implements QuestionService {
             BeanUtil.copyProperties(question,questionES);
             log.info("将数据插入ES:{}",questionES);
             questionRepository.save(questionES);
+            //还需要操作redis questionId顺序列表
+            questionCacheManager.addCache(question.getQuestionId());
         }
         return result;
     }
@@ -133,6 +138,8 @@ public class QuestionServiceImpl implements QuestionService {
             QuestionES questionES = new QuestionES();
             BeanUtil.copyProperties(question,questionES);
             questionRepository.delete(questionES);
+            //维护redis list 顺序列表 维护题目顺序
+            questionCacheManager.removeCache(questionId);
         }
         return result;
     }

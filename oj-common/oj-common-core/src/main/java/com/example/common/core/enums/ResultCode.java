@@ -31,7 +31,8 @@ public enum ResultCode {
     FAILED_CODE_WRONG(3303,"验证码错误"),
     FAILED_END_TIME_PASSED(3204,"竞赛已结束"),
     FAILED_ALREADY_ENTER(3301,"用户已报名"), FAILED_STATUS_ERROR(3206,"未发布状态才能修改题目"),
-    FAILED_FILE_UPLOAD(3005,"文件上传失败"), FAILED_FILE_UPLOAD_TIME_LIMIT(3006,"文件上传超过次数限制");
+    FAILED_FILE_UPLOAD(3005,"文件上传失败"), FAILED_FILE_UPLOAD_TIME_LIMIT(3006,"文件上传超过次数限制"),
+    FAILED_FIRST_QUESTION(3401,"当前已经是第一题"), FAILED_LAST_QUESTION(3402, "当前已经是最后一题");
 
     //状态码
     private final int code;

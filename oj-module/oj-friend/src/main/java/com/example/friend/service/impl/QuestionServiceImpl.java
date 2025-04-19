@@ -3,14 +3,21 @@ package com.example.friend.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.common.core.domain.PageResult;
+import com.example.common.core.domain.Result;
+import com.example.common.core.enums.ResultCode;
+import com.example.common.redis.service.RedisService;
+import com.example.common.security.exception.ServiceException;
 import com.example.friend.domain.dto.QuestionQueryDTO;
 import com.example.friend.domain.entity.Question;
 import com.example.friend.domain.entity.QuestionES;
 import com.example.friend.domain.vo.QuestionQueryVO;
+import com.example.friend.domain.vo.QuestionVO;
 import com.example.friend.elasticsearch.QuestionRepository;
+import com.example.friend.manager.QuestionCacheManager;
 import com.example.friend.mapper.QuestionMapper;
 import com.example.friend.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -28,6 +35,9 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Autowired
     private QuestionMapper questionMapper;
+
+    @Autowired
+    private QuestionCacheManager questionCacheManager;
 
     @Override
     public PageResult list(QuestionQueryDTO questionQueryDTO) {
@@ -65,6 +75,43 @@ public class QuestionServiceImpl implements QuestionService {
         //转换VO
         List<QuestionQueryVO> contentVO = BeanUtil.copyToList(content, QuestionQueryVO.class);
         return PageResult.success(contentVO,totalElements);
+    }
+
+    @Override
+    public QuestionVO detail(Long questionId) {
+        //先查ES 再查MySQL
+        QuestionES question = questionRepository.findById(questionId).orElse(null);
+        if(question == null) {
+            //刷新
+            refreshQuestion();
+            question = questionRepository.findById(questionId).orElse(null);
+            if(question == null) {
+                throw new ServiceException(ResultCode.FAILED_NOT_EXISTS);
+            }
+        }
+        //查到了 转换类型
+        return BeanUtil.toBean(question,QuestionVO.class);
+    }
+
+    @Override
+    public Long next(Long questionId) {
+        Long size = questionCacheManager.listSize();
+        if(size == 0) {
+            questionCacheManager.refreshQuestionCache();
+        }
+        //再次获取
+        return questionCacheManager.nextQuestion(questionId);
+    }
+
+    @Override
+    public Long pre(Long questionId) {
+        //先从redis中尝试获取
+        Long size = questionCacheManager.listSize();
+        if(size == 0) {
+            questionCacheManager.refreshQuestionCache();
+        }
+        //再次获取
+        return questionCacheManager.preQuestion(questionId);
     }
 
     public void refreshQuestion() {

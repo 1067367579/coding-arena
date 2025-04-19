@@ -224,4 +224,13 @@ public class RedisService {
     public void incrementHashValue(String userUploadTimesKey, String s, int i) {
         redisTemplate.opsForHash().increment(userUploadTimesKey, s, i);
     }
+
+    public Long indexOfForList(String questionListKey, Long questionId) {
+        return redisTemplate.opsForList().indexOf(questionListKey, questionId);
+    }
+
+
+    public Object indexOf(String questionListKey, long l) {
+        return redisTemplate.opsForList().index(questionListKey,l);
+    }
 }
