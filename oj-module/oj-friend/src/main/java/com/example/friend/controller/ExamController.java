@@ -2,6 +2,7 @@ package com.example.friend.controller;
 
 import com.example.common.core.controller.BaseController;
 import com.example.common.core.domain.PageResult;
+import com.example.common.core.domain.Result;
 import com.example.friend.domain.dto.ExamQueryDTO;
 import com.example.friend.service.ExamService;
 import lombok.extern.slf4j.Slf4j;
@@ -33,5 +34,12 @@ public class ExamController extends BaseController {
         log.info("列表查询竞赛redis:{}", examQueryDTO);
         processPageArgs(examQueryDTO);
         return examService.redisList(examQueryDTO);
+    }
+
+    //获取首道题的ID
+    @GetMapping("/getFirstQuestion")
+    public Result<String> getFirstQuestion(Long examId) {
+        //获取竞赛题目的顺序列表 找到第一个的题目Id 返回
+        return Result.ok(examService.getFirstQuestion(examId));
     }
 }

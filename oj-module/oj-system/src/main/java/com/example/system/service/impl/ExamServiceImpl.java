@@ -196,7 +196,9 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
         }
         //校验成功 修改字段
         exam.setStatus(Constants.NOT_PUBLISHED);
-        //取消发布 调用deleteCache
+        //取消发布 调用deleteCache 也要删除竞赛题目列表缓存
+        //竞赛开始用户查询时自行增加缓存 用户撤销发布后操作
+        examCacheManager.deleteExamListCache(examId);
         examCacheManager.deleteCache(examId);
         return examMapper.updateById(exam);
     }
@@ -228,7 +230,10 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
     public boolean saveQuestion(ExamQuestionDTO dto) {
         List<ExamQuestion> examQuestions = new ArrayList<>();
         //遍历问题集合 拼装集合插入
-        int order = 0;
+        int order = examQuestionMapper.selectCount(
+                new LambdaQueryWrapper<ExamQuestion>()
+                        .eq(ExamQuestion::getExamId,dto.getExamId())
+        ).intValue();
         for (Long questionId : dto.getQuestionIds()) {
             ExamQuestion examQuestion = new ExamQuestion();
             examQuestion.setQuestionId(questionId);

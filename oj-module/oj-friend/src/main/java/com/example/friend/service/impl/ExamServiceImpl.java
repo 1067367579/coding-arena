@@ -2,16 +2,21 @@ package com.example.friend.service.impl;
 
 import com.example.common.core.constants.JwtConstants;
 import com.example.common.core.domain.PageResult;
+import com.example.common.core.enums.ResultCode;
 import com.example.common.core.utils.ThreadLocalUtil;
+import com.example.common.redis.service.RedisService;
+import com.example.common.security.exception.ServiceException;
 import com.example.friend.domain.dto.ExamQueryDTO;
 import com.example.friend.domain.vo.ExamQueryVO;
 import com.example.friend.manager.ExamCacheManager;
+import com.example.friend.manager.QuestionCacheManager;
 import com.example.friend.mapper.ExamMapper;
 import com.example.friend.service.ExamService;
 import com.github.pagehelper.PageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -22,6 +27,10 @@ public class ExamServiceImpl implements ExamService {
 
     @Autowired
     private ExamCacheManager examCacheManager;
+    @Autowired
+    private QuestionCacheManager questionCacheManager;
+    @Autowired
+    private RedisService redisService;
 
     @Override
     public List<ExamQueryVO> list(ExamQueryDTO examQueryDTO) {
@@ -55,5 +64,19 @@ public class ExamServiceImpl implements ExamService {
         ).toList();
         examVOList.setRows(list);
         return examVOList;
+    }
+
+    @Override
+    public String getFirstQuestion(Long examId) {
+        //只有开赛了才能调用这个接口 不然会有泄题风险 之前的redis缓存有竞赛数据
+        ExamQueryVO examQueryVO = examCacheManager.getExamQueryVO(examId);
+        //判断开始时间
+        if(examQueryVO.getStartTime().isAfter(LocalDateTime.now())) {
+            //还未开赛 不能获取
+            throw new ServiceException(ResultCode.FAILED_EXAM_NOT_START);
+        }
+        //还是一样先查redis 查不到查MySQL MySQL都查不到报错
+        Long firstQuestion = examCacheManager.getFirstQuestion(examId);
+        return String.valueOf(firstQuestion);
     }
 }

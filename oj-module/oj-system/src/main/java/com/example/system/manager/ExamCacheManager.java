@@ -36,5 +36,14 @@ public class ExamCacheManager {
         return CacheConstants.EXAM_DETAIL_KEY_PREFIX+examId;
     }
 
+    public String getExamQuestionListKey(Long examId) {
+        return CacheConstants.EXAM_QUESTION_LIST_KEY_PREFIX+examId;
+    }
+
+    public void deleteExamListCache(Long examId) {
+        String examQuestionListKey = getExamQuestionListKey(examId);
+        redisService.deleteObject(examQuestionListKey);
+    }
+
     //已结束的竞赛进行处理 移动缓存 使用xxl-job重新刷新缓存定时处理
 }
