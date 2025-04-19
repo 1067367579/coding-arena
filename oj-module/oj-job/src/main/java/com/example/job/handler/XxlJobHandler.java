@@ -1,8 +1,8 @@
 package com.example.job.handler;
 
 import com.example.common.redis.service.RedisService;
-import com.example.core.constants.CacheConstants;
-import com.example.core.enums.ExamListType;
+import com.example.common.core.constants.CacheConstants;
+import com.example.common.core.enums.ExamListType;
 import com.example.job.domain.dto.ExamQueryDTO;
 import com.example.job.domain.vo.ExamQueryVO;
 import com.example.job.mapper.ExamMapper;

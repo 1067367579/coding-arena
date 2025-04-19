@@ -1,8 +1,8 @@
 package com.example.friend.service.impl;
 
-import com.example.core.constants.JwtConstants;
-import com.example.core.domain.PageResult;
-import com.example.core.utils.ThreadLocalUtil;
+import com.example.common.core.constants.JwtConstants;
+import com.example.common.core.domain.PageResult;
+import com.example.common.core.utils.ThreadLocalUtil;
 import com.example.friend.domain.dto.ExamQueryDTO;
 import com.example.friend.domain.vo.ExamQueryVO;
 import com.example.friend.manager.ExamCacheManager;

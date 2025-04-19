@@ -1,6 +1,6 @@
 package com.example.friend.domain.dto;
 
-import com.example.core.domain.PageQueryDTO;
+import com.example.common.core.domain.PageQueryDTO;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

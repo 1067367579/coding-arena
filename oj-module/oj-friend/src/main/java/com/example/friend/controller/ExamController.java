@@ -1,14 +1,12 @@
 package com.example.friend.controller;
 
-import com.example.core.constants.HttpConstants;
-import com.example.core.controller.BaseController;
-import com.example.core.domain.PageResult;
+import com.example.common.core.controller.BaseController;
+import com.example.common.core.domain.PageResult;
 import com.example.friend.domain.dto.ExamQueryDTO;
 import com.example.friend.service.ExamService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 

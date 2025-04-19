@@ -1,8 +1,8 @@
 package com.example.common.mybatis;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
-import com.example.core.constants.JwtConstants;
-import com.example.core.utils.ThreadLocalUtil;
+import com.example.common.core.constants.JwtConstants;
+import com.example.common.core.utils.ThreadLocalUtil;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
 

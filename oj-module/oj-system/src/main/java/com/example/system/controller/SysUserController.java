@@ -1,9 +1,9 @@
 package com.example.system.controller;
 
-import com.example.core.constants.HttpConstants;
-import com.example.core.controller.BaseController;
-import com.example.core.domain.LoginUser;
-import com.example.core.domain.Result;
+import com.example.common.core.constants.HttpConstants;
+import com.example.common.core.controller.BaseController;
+import com.example.common.core.domain.LoginUser;
+import com.example.common.core.domain.Result;
 import com.example.system.domain.admin.dto.LoginDTO;
 import com.example.system.domain.admin.dto.SysUserDTO;
 import com.example.system.domain.admin.vo.SysUserVO;

@@ -220,4 +220,8 @@ public class RedisService {
     public <K,V> void multiSet(Map<? extends K, ? extends V> map) {
         redisTemplate.opsForValue().multiSet(map);
     }
+
+    public void incrementHashValue(String userUploadTimesKey, String s, int i) {
+        redisTemplate.opsForHash().increment(userUploadTimesKey, s, i);
+    }
 }

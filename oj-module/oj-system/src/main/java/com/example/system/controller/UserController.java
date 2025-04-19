@@ -1,8 +1,8 @@
 package com.example.system.controller;
 
-import com.example.core.controller.BaseController;
-import com.example.core.domain.PageResult;
-import com.example.core.domain.Result;
+import com.example.common.core.controller.BaseController;
+import com.example.common.core.domain.PageResult;
+import com.example.common.core.domain.Result;
 import com.example.system.domain.user.dto.UserQueryDTO;
 import com.example.system.domain.user.dto.UserStatusDTO;
 import com.example.system.service.UserService;

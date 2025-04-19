@@ -1,4 +1,4 @@
-package com.example.core.utils;
+package com.example.common.core.utils;
 
 import com.alibaba.ttl.TransmittableThreadLocal;
 

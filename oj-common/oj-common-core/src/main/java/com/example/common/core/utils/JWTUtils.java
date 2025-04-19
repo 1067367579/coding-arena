@@ -1,4 +1,4 @@
-package com.example.core.utils;
+package com.example.common.core.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

@@ -1,6 +1,6 @@
 package com.example.system.service;
 
-import com.example.core.domain.Result;
+import com.example.common.core.domain.Result;
 import com.example.system.domain.question.dto.QuestionAddDTO;
 import com.example.system.domain.question.dto.QuestionEditDTO;
 import com.example.system.domain.question.dto.QuestionQueryDTO;

@@ -1,6 +1,6 @@
 package com.example.system.domain.exam.dto;
 
-import com.example.core.domain.PageQueryDTO;
+import com.example.common.core.domain.PageQueryDTO;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

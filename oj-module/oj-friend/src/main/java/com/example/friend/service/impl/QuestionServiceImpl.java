@@ -2,7 +2,7 @@ package com.example.friend.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.example.core.domain.PageResult;
+import com.example.common.core.domain.PageResult;
 import com.example.friend.domain.dto.QuestionQueryDTO;
 import com.example.friend.domain.entity.Question;
 import com.example.friend.domain.entity.QuestionES;

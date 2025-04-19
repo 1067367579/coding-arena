@@ -1,9 +1,9 @@
-package com.example.core.controller;
+package com.example.common.core.controller;
 
-import com.example.core.constants.HttpConstants;
-import com.example.core.domain.PageQueryDTO;
-import com.example.core.domain.PageResult;
-import com.example.core.domain.Result;
+import com.example.common.core.domain.PageQueryDTO;
+import com.example.common.core.domain.PageResult;
+import com.example.common.core.constants.HttpConstants;
+import com.example.common.core.domain.Result;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;

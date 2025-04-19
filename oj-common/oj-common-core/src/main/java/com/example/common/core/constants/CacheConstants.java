@@ -1,4 +1,4 @@
-package com.example.core.constants;
+package com.example.common.core.constants;
 
 public class CacheConstants {
 
@@ -24,4 +24,6 @@ public class CacheConstants {
     //竞赛详情 key有多份 取决于examId
     public static final String EXAM_DETAIL_KEY_PREFIX = "exam:detail:";
     public static final String USER_EXAM_LIST_KEY_PREFIX = "user:exam:list:";
+    public static final String USER_DETAIL_KEY_PREFIX = "user:detail:";
+    public static final String USER_UPLOAD_TIMES_KEY = "user:upload:time";
 }

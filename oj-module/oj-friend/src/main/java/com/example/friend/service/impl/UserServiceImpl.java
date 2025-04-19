@@ -2,17 +2,24 @@ package com.example.friend.service.impl;
 
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.example.common.file.OSSResult;
+import com.example.common.file.OSSService;
 import com.example.common.message.service.EmailService;
 import com.example.common.redis.service.RedisService;
 import com.example.common.security.exception.ServiceException;
 import com.example.common.security.service.TokenService;
-import com.example.core.constants.CacheConstants;
-import com.example.core.domain.LoginUser;
-import com.example.core.domain.Result;
-import com.example.core.enums.ResultCode;
+import com.example.common.core.constants.CacheConstants;
+import com.example.common.core.constants.JwtConstants;
+import com.example.common.core.domain.LoginUser;
+import com.example.common.core.domain.Result;
+import com.example.common.core.enums.ResultCode;
+import com.example.common.core.utils.ThreadLocalUtil;
 import com.example.friend.domain.dto.SendCodeDTO;
+import com.example.friend.domain.dto.UserEditDTO;
 import com.example.friend.domain.dto.UserLoginDTO;
 import com.example.friend.domain.entity.User;
+import com.example.friend.domain.vo.UserVO;
+import com.example.friend.manager.UserCacheManager;
 import com.example.friend.mapper.UserMapper;
 import com.example.friend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -49,7 +57,12 @@ public class UserServiceImpl implements UserService {
     private String secret;
 
     @Autowired
+    private OSSService ossService;
+
+    @Autowired
     private TokenService tokenService;
+    @Autowired
+    private UserCacheManager userCacheManager;
 
     @Override
     public Result<?> sendCode(SendCodeDTO sendCodeDTO) {
@@ -119,6 +132,76 @@ public class UserServiceImpl implements UserService {
         LoginUser loginUser = tokenService.getLoginUser(token, secret);
         //从令牌中获取出登录用户
         return loginUser==null?Result.fail():Result.ok(loginUser);
+    }
+
+    @Override
+    public UserVO detail() {
+        Long userId = getUserId();
+        //查询redis
+        return userCacheManager.getUserDetail(userId);
+    }
+
+    public Long getUserId() {
+        //查用户ID
+        Object userIdObject = ThreadLocalUtil.getLocalMap().get(JwtConstants.USER_ID);
+        if(userIdObject == null) {
+            throw new ServiceException(ResultCode.FAILED_USER_NOT_EXISTS);
+        }
+        //如果查到了用户ID
+        return (Long) userIdObject;
+    }
+
+    @Override
+    public int edit(UserEditDTO userEditDTO) {
+        Long userId = getUserId();
+        //从数据库中获取
+        User user = userMapper.selectById(userId);
+        if(user == null) {
+            throw new ServiceException(ResultCode.FAILED_USER_NOT_EXISTS);
+        }
+        //修改用户
+        user.setNickName(userEditDTO.getNickName());
+        user.setAvatar(userEditDTO.getAvatar());
+        user.setSchool(userEditDTO.getSchool());
+        user.setGender(userEditDTO.getGender());
+        user.setMajor(userEditDTO.getMajor());
+        user.setIntroduce(userEditDTO.getIntroduce());
+        user.setWechat(userEditDTO.getWechat());
+        user.setPhone(userEditDTO.getPhone());
+        //更新数据库以及缓存
+        int result = userMapper.updateById(user);
+        if(result >= 0) {
+            //更新数据库成功 刷新LoginUser缓存和UserDetail缓存
+            userCacheManager.refreshUserDetail(userId);
+            //获取LoginUser
+            LoginUser loginUser = redisService.getCacheObject(CacheConstants.USER_TOKEN_PREFIX + userId, LoginUser.class);
+            loginUser.setNickName(userEditDTO.getNickName());
+            loginUser.setAvatar(userEditDTO.getAvatar());
+            redisService.setCacheObject(CacheConstants.USER_TOKEN_PREFIX + userId,loginUser);
+        }
+        return result;
+    }
+
+    @Override
+    public int updateAvatar(UserEditDTO userEditDTO) {
+        Long userId = getUserId();
+        //从数据库中获取
+        User user = userMapper.selectById(userId);
+        if(user == null) {
+            throw new ServiceException(ResultCode.FAILED_USER_NOT_EXISTS);
+        }
+        user.setAvatar(userEditDTO.getAvatar());
+        //更新数据库以及缓存
+        int result = userMapper.updateById(user);
+        if(result >= 0) {
+            //更新数据库成功 刷新LoginUser缓存和UserDetail缓存
+            userCacheManager.refreshUserDetail(userId);
+            //获取LoginUser
+            LoginUser loginUser = redisService.getCacheObject(CacheConstants.USER_TOKEN_PREFIX + userId, LoginUser.class);
+            loginUser.setAvatar(userEditDTO.getAvatar());
+            redisService.setCacheObject(CacheConstants.USER_TOKEN_PREFIX + userId,loginUser);
+        }
+        return result;
     }
 
     private void checkCode(UserLoginDTO loginDTO) {

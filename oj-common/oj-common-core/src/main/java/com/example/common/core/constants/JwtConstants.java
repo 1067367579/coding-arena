@@ -1,4 +1,4 @@
-package com.example.core.constants;
+package com.example.common.core.constants;
 
 public class JwtConstants {
     //用户ID

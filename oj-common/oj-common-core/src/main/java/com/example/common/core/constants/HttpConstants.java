@@ -1,4 +1,4 @@
-package com.example.core.constants;
+package com.example.common.core.constants;
 
 /**
  * 与HTTP请求响应相关的常量

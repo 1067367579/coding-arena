@@ -2,9 +2,9 @@ package com.example.friend.manager;
 
 import cn.hutool.core.collection.CollUtil;
 import com.example.common.redis.service.RedisService;
-import com.example.core.constants.CacheConstants;
-import com.example.core.domain.PageResult;
-import com.example.core.enums.ExamListType;
+import com.example.common.core.constants.CacheConstants;
+import com.example.common.core.domain.PageResult;
+import com.example.common.core.enums.ExamListType;
 import com.example.friend.domain.dto.ExamQueryDTO;
 import com.example.friend.domain.vo.ExamQueryVO;
 import com.example.friend.mapper.ExamMapper;

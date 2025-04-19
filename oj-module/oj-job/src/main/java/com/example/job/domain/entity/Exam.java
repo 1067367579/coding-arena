@@ -2,7 +2,7 @@ package com.example.job.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.example.core.domain.BaseEntity;
+import com.example.common.core.domain.BaseEntity;
 import lombok.Data;
 
 import java.time.LocalDateTime;

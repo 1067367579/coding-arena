@@ -33,6 +33,9 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <hutool.version>5.8.22</hutool.version>
         <xxl-job.version>2.4.0</xxl-job.version>
         <thread-local.version>2.12.0</thread-local.version>
+        <aliyun-oss-sdk.version>3.17.4</aliyun-oss-sdk.version>
+        <javax-activation.version>1.1.1</javax-activation.version>
+        <jaxb-runtime.version>2.3.3</jaxb-runtime.version>
     </properties>
     <dependencies>
         <!-- bootstrap 启动器 -->

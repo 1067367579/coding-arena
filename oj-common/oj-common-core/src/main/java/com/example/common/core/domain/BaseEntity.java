@@ -1,4 +1,4 @@
-package com.example.core.domain;
+package com.example.common.core.domain;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;

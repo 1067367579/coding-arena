@@ -1,4 +1,4 @@
-package com.example.core.constants;
+package com.example.common.core.constants;
 
 //用户默认值常量配置
 public class UserConstant {

@@ -1,6 +1,6 @@
 package com.example.common.security.exception;
 
-import com.example.core.enums.ResultCode;
+import com.example.common.core.enums.ResultCode;
 import lombok.Getter;
 
 //业务异常类

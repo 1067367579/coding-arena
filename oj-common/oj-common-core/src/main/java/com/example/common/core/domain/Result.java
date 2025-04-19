@@ -1,6 +1,6 @@
-package com.example.core.domain;
+package com.example.common.core.domain;
 
-import com.example.core.enums.ResultCode;
+import com.example.common.core.enums.ResultCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

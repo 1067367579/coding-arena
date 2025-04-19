@@ -1,7 +1,7 @@
 package com.example.system.service;
 
-import com.example.core.domain.LoginUser;
-import com.example.core.domain.Result;
+import com.example.common.core.domain.LoginUser;
+import com.example.common.core.domain.Result;
 import com.example.system.domain.admin.dto.LoginDTO;
 import com.example.system.domain.admin.dto.SysUserDTO;
 

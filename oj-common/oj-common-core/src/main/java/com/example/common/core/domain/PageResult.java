@@ -1,6 +1,6 @@
-package com.example.core.domain;
+package com.example.common.core.domain;
 
-import com.example.core.enums.ResultCode;
+import com.example.common.core.enums.ResultCode;
 import lombok.Data;
 
 import java.util.ArrayList;

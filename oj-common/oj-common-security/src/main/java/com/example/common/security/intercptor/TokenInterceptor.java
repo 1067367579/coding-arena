@@ -1,9 +1,9 @@
 package com.example.common.security.intercptor;
 
 import com.example.common.security.service.TokenService;
-import com.example.core.constants.HttpConstants;
-import com.example.core.constants.JwtConstants;
-import com.example.core.utils.ThreadLocalUtil;
+import com.example.common.core.constants.HttpConstants;
+import com.example.common.core.constants.JwtConstants;
+import com.example.common.core.utils.ThreadLocalUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

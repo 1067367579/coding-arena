@@ -1,11 +1,14 @@
 package com.example.friend.controller;
 
-import com.example.core.constants.HttpConstants;
-import com.example.core.controller.BaseController;
-import com.example.core.domain.LoginUser;
-import com.example.core.domain.Result;
+import com.example.common.core.constants.HttpConstants;
+import com.example.common.core.controller.BaseController;
+import com.example.common.core.domain.LoginUser;
+import com.example.common.core.domain.Result;
+import com.example.common.file.OSSResult;
 import com.example.friend.domain.dto.SendCodeDTO;
+import com.example.friend.domain.dto.UserEditDTO;
 import com.example.friend.domain.dto.UserLoginDTO;
+import com.example.friend.domain.vo.UserVO;
 import com.example.friend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -16,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @Slf4j
@@ -59,5 +63,23 @@ public class UserController extends BaseController {
         log.info("获取到当前用户令牌为：{}",token);
         token= processToken(token);
         return userService.info(token);
+    }
+
+    @GetMapping("/detail")
+    public Result<UserVO> detail() {
+        log.info("查看用户详细信息");
+        return Result.ok(userService.detail());
+    }
+
+    @PutMapping("/edit")
+    public Result<?> updateUser(@RequestBody UserEditDTO userEditDTO) {
+        log.info("修改用户信息:{}",userEditDTO);
+        return responseByService(userService.edit(userEditDTO));
+    }
+
+    @PostMapping("/avatar/update")
+    public Result<?> updateAvatar(@RequestBody UserEditDTO userEditDTO) {
+        log.info("修改用户头像:{}",userEditDTO);
+        return responseByService(userService.updateAvatar(userEditDTO));
     }
 }

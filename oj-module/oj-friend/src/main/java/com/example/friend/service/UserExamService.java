@@ -1,6 +1,6 @@
 package com.example.friend.service;
 
-import com.example.core.domain.PageResult;
+import com.example.common.core.domain.PageResult;
 import com.example.friend.domain.dto.ExamQueryDTO;
 import com.example.friend.domain.dto.UserExamDTO;
 

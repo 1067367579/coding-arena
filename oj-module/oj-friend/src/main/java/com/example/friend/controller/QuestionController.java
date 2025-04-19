@@ -1,7 +1,7 @@
 package com.example.friend.controller;
 
-import com.example.core.controller.BaseController;
-import com.example.core.domain.PageResult;
+import com.example.common.core.controller.BaseController;
+import com.example.common.core.domain.PageResult;
 import com.example.friend.domain.dto.QuestionQueryDTO;
 import com.example.friend.service.QuestionService;
 import lombok.extern.slf4j.Slf4j;

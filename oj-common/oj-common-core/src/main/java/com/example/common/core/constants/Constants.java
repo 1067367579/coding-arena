@@ -1,4 +1,4 @@
-package com.example.core.constants;
+package com.example.common.core.constants;
 
 public class Constants {
     //竞赛状态 已发布
