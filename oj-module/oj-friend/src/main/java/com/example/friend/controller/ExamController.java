@@ -42,4 +42,15 @@ public class ExamController extends BaseController {
         //获取竞赛题目的顺序列表 找到第一个的题目Id 返回
         return Result.ok(examService.getFirstQuestion(examId));
     }
+
+    //切换题目
+    @GetMapping("/pre")
+    public Result<String> pre(Long examId,Long questionId) {
+        return Result.ok(examService.preQuestion(examId,questionId));
+    }
+
+    @GetMapping("/next")
+    public Result<String> next(Long examId,Long questionId) {
+        return Result.ok(examService.nextQuestion(examId,questionId));
+    }
 }

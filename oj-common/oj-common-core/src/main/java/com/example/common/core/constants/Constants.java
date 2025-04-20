@@ -7,4 +7,5 @@ public class Constants {
     public static final Integer NOT_PUBLISHED = 0;
     //竞赛添加问题 筛选问题查询 集合字符串分隔符
     public static final String QUESTION_ID_DELIMITER = ";";
+    public static final String JUDGE_SERVICE = "oj-judge";
 }

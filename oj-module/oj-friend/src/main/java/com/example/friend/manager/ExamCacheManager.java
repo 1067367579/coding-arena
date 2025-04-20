@@ -14,9 +14,9 @@ import com.example.friend.domain.entity.Exam;
 import com.example.friend.domain.entity.ExamQuestion;
 import com.example.friend.domain.vo.ExamQueryVO;
 import com.example.friend.mapper.ExamMapper;
+import com.example.friend.mapper.ExamQuestionMapper;
 import com.example.friend.mapper.UserExamMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -201,12 +201,6 @@ public class ExamCacheManager {
 
     public Long getFirstQuestion(Long examId) {
         String examQuestionListKey = getExamQuestionListKey(examId);
-        //获取长度
-        Long size = this.getExamQuestionListSize(examQuestionListKey);
-        if(size == 0) {
-            //如果长度为0 说明没有数据 刷新
-            refreshExamQuestionList(examId);
-        }
         //刷新完redis之后 直接获取出来 获取第一个元素
         Object object = redisService.indexOf(examQuestionListKey, 0);
         if(object == null) {
@@ -214,6 +208,8 @@ public class ExamCacheManager {
         }
         return (Long) object;
     }
+
+
 
     public void refreshExamQuestionList(Long examId) {
         List<ExamQuestion> examQuestions = examQuestionMapper.selectList(new LambdaQueryWrapper<ExamQuestion>()
@@ -236,11 +232,39 @@ public class ExamCacheManager {
         ), TimeUnit.SECONDS);
     }
 
-    public Long getExamQuestionListSize(String examQuestionListKey) {
+    public Long getExamQuestionListSize(Long examId) {
+        String examQuestionListKey = getExamQuestionListKey(examId);
         return redisService.getListSize(examQuestionListKey);
     }
 
     public String getExamQuestionListKey(Long examId) {
         return CacheConstants.EXAM_QUESTION_LIST_KEY_PREFIX+examId;
+    }
+
+    public Long preQuestion(Long examId, Long questionId) {
+        //刷新了缓存 获取
+        Long size = getExamQuestionListSize(examId);
+        if(size == 0) {
+            throw new ServiceException(ResultCode.FAILED_NOT_EXISTS);
+        }
+        String examQuestionListKey = getExamQuestionListKey(examId);
+        Long index = redisService.indexOfForList(examQuestionListKey, questionId);
+        if(index == 0) {
+            throw new ServiceException(ResultCode.FAILED_FIRST_QUESTION);
+        }
+        return (Long) redisService.indexOf(examQuestionListKey,index-1);
+    }
+
+    public Long nextQuestion(Long examId, Long questionId) {
+        Long size = getExamQuestionListSize(examId);
+        if(size == 0) {
+            throw new ServiceException(ResultCode.FAILED_NOT_EXISTS);
+        }
+        String examQuestionListKey = getExamQuestionListKey(examId);
+        Long index = redisService.indexOfForList(examQuestionListKey, questionId);
+        if(index == size-1) {
+            throw new ServiceException(ResultCode.FAILED_LAST_QUESTION);
+        }
+        return (Long) redisService.indexOf(examQuestionListKey,index+1);
     }
 }

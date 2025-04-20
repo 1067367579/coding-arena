@@ -68,6 +68,23 @@ public class ExamServiceImpl implements ExamService {
 
     @Override
     public String getFirstQuestion(Long examId) {
+        checkExamTime(examId);
+        checkExamQuestionListCache(examId);
+        //还是一样先查redis 查不到查MySQL MySQL都查不到报错
+        Long firstQuestion = examCacheManager.getFirstQuestion(examId);
+        return String.valueOf(firstQuestion);
+    }
+
+    private void checkExamQuestionListCache(Long examId) {
+        //获取长度
+        Long size = examCacheManager.getExamQuestionListSize(examId);
+        if(size == 0) {
+            //如果长度为0 说明没有数据 刷新
+            examCacheManager.refreshExamQuestionList(examId);
+        }
+    }
+
+    private void checkExamTime(Long examId) {
         //只有开赛了才能调用这个接口 不然会有泄题风险 之前的redis缓存有竞赛数据
         ExamQueryVO examQueryVO = examCacheManager.getExamQueryVO(examId);
         //判断开始时间
@@ -75,8 +92,17 @@ public class ExamServiceImpl implements ExamService {
             //还未开赛 不能获取
             throw new ServiceException(ResultCode.FAILED_EXAM_NOT_START);
         }
-        //还是一样先查redis 查不到查MySQL MySQL都查不到报错
-        Long firstQuestion = examCacheManager.getFirstQuestion(examId);
-        return String.valueOf(firstQuestion);
+    }
+
+    public String preQuestion(Long examId, Long questionId) {
+        checkExamTime(examId);
+        checkExamQuestionListCache(examId);
+        return examCacheManager.preQuestion(examId,questionId).toString();
+    }
+
+    public String nextQuestion(Long examId, Long questionId) {
+        checkExamTime(examId);
+        checkExamQuestionListCache(examId);
+        return examCacheManager.nextQuestion(examId,questionId).toString();
     }
 }

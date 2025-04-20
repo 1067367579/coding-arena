@@ -190,9 +190,9 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper,ExamQuestion
     public int cancelPublish(Long examId) {
         //也是先校验是否存在竞赛
         Exam exam = getExamById(examId);
-        //校验是否已经开始 已完赛的竞赛无法撤销
-        if(LocalDateTime.now().isAfter(exam.getEndTime())) {
-            throw new ServiceException(ResultCode.FAILED_END_TIME_PASSED);
+        //校验是否已经开始 已开赛的竞赛无法撤销
+        if(LocalDateTime.now().isAfter(exam.getStartTime())) {
+            throw new ServiceException(ResultCode.FAILED_START_TIME_PASSED);
         }
         //校验成功 修改字段
         exam.setStatus(Constants.NOT_PUBLISHED);

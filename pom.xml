@@ -18,6 +18,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <module>oj-module</module>
         <module>oj-common</module>
         <module>oj-gateway</module>
+        <module>oj-api</module>
     </modules>
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -36,6 +37,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <aliyun-oss-sdk.version>3.17.4</aliyun-oss-sdk.version>
         <javax-activation.version>1.1.1</javax-activation.version>
         <jaxb-runtime.version>2.3.3</jaxb-runtime.version>
+        <docker-java.version>3.3.4</docker-java.version>
     </properties>
     <dependencies>
         <!-- bootstrap 启动器 -->

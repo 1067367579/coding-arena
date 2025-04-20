@@ -1,4 +1,4 @@
-package com.example.friend.manager;
+package com.example.friend.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.friend.domain.entity.ExamQuestion;

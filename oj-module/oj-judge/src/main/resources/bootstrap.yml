@@ -1,7 +1,16 @@
-server:
-  port: 9095
 # Spring
 spring:
   application:
     # 应⽤名称
     name: oj-judge
+  profiles:
+    active: local
+  cloud:
+    nacos:
+      config:
+        server-addr: http://114.132.235.199:8848
+        namespace: ff584b75-4fce-4648-a046-34fd21013463
+        file-extension: yaml
+      discovery:
+        server-addr: http://114.132.235.199:8848
+        namespace: ff584b75-4fce-4648-a046-34fd21013463
