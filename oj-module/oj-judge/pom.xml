@@ -38,6 +38,11 @@
             <classifier>osx-aarch_64</classifier>
             <version>${netty.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>oj-comon-rabbitmq</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
 </project>

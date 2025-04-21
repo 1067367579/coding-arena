@@ -6,4 +6,6 @@ import com.example.friend.domain.dto.UserSubmitDTO;
 
 public interface UserQuestionService {
     Result<UserQuestionResultVO> submit(UserSubmitDTO userSubmitDTO);
+
+    Result<UserQuestionResultVO> rabbitSubmit(UserSubmitDTO userSubmitDTO);
 }

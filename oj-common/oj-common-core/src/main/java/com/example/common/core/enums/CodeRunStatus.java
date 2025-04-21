@@ -1,4 +1,4 @@
-package com.example.judge.domain;
+package com.example.common.core.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

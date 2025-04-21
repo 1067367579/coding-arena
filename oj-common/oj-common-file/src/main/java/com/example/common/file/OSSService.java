@@ -1,7 +1,6 @@
 package com.example.common.file;
 
 import cn.hutool.core.exceptions.ExceptionUtil;
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.lang.ObjectId;
 import cn.hutool.core.util.StrUtil;
 import com.aliyun.oss.OSSClient;
@@ -11,9 +10,10 @@ import com.aliyun.oss.model.PutObjectRequest;
 import com.aliyun.oss.model.PutObjectResult;
 import com.example.common.core.constants.CacheConstants;
 import com.example.common.core.constants.JwtConstants;
+import com.example.common.core.enums.ResultCode;
+import com.example.common.core.utils.ThreadLocalUtil;
 import com.example.common.redis.service.RedisService;
 import com.example.common.security.exception.ServiceException;
-import com.example.common.core.enums.ResultCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
-import com.example.common.core.utils.ThreadLocalUtil;
 
 @Component
 @RefreshScope

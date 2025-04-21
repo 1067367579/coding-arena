@@ -1,6 +1,6 @@
 package com.example.judge.service;
 
-import com.example.judge.domain.SandboxExecuteResult;
+import com.example.judge.domain.result.SandboxExecuteResult;
 
 import java.util.List;
 

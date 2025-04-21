@@ -1,7 +1,6 @@
 package com.example.gateway.filter;
 
 import com.alibaba.fastjson2.JSON;
-import com.example.common.redis.service.RedisService;
 import com.example.common.core.constants.CacheConstants;
 import com.example.common.core.constants.HttpConstants;
 import com.example.common.core.constants.JwtConstants;
@@ -9,6 +8,7 @@ import com.example.common.core.domain.LoginUser;
 import com.example.common.core.domain.Result;
 import com.example.common.core.enums.ResultCode;
 import com.example.common.core.utils.JWTUtils;
+import com.example.common.redis.service.RedisService;
 import com.example.gateway.properties.IgnoreWhiteProperties;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;

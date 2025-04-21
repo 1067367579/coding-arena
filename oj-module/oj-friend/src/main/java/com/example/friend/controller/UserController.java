@@ -4,7 +4,6 @@ import com.example.common.core.constants.HttpConstants;
 import com.example.common.core.controller.BaseController;
 import com.example.common.core.domain.LoginUser;
 import com.example.common.core.domain.Result;
-import com.example.common.file.OSSResult;
 import com.example.friend.domain.dto.SendCodeDTO;
 import com.example.friend.domain.dto.UserEditDTO;
 import com.example.friend.domain.dto.UserLoginDTO;
@@ -19,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @Slf4j

@@ -1,5 +1,6 @@
-package com.example.judge.domain;
+package com.example.judge.domain.result;
 
+import com.example.common.core.enums.CodeRunStatus;
 import lombok.Data;
 
 import java.util.List;

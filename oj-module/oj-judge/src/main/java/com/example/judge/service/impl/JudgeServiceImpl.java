@@ -6,12 +6,12 @@ import com.example.api.domain.dto.JudgeDTO;
 import com.example.api.domain.vo.UserQuestionResultVO;
 import com.example.common.core.constants.JudgeConstants;
 import com.example.common.core.domain.Result;
-import com.example.judge.domain.CodeRunStatus;
-import com.example.judge.domain.SandboxExecuteResult;
-import com.example.judge.domain.UserSubmit;
+import com.example.common.core.enums.CodeRunStatus;
+import com.example.judge.domain.entity.UserSubmit;
+import com.example.judge.domain.result.SandboxExecuteResult;
 import com.example.judge.mapper.UserSubmitMapper;
 import com.example.judge.service.JudgeService;
-import com.example.judge.service.SandboxService;
+import com.example.judge.service.SandboxPoolService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ import java.util.List;
 public class JudgeServiceImpl implements JudgeService {
 
     @Autowired
-    SandboxService sandboxService;
+    SandboxPoolService sandboxPoolService;
 
     @Autowired
     UserSubmitMapper userSubmitMapper;
@@ -34,7 +34,7 @@ public class JudgeServiceImpl implements JudgeService {
     @Override
     public Result<UserQuestionResultVO> doJudgeJavaCode(JudgeDTO judgeDTO) {
         //沙盒服务执行结果返回
-        SandboxExecuteResult exeResult = sandboxService.exeJavaCode(judgeDTO.getUserId(), judgeDTO.getUserCode(),judgeDTO.getInputList());
+        SandboxExecuteResult exeResult = sandboxPoolService.exeJavaCode(judgeDTO.getUserId(), judgeDTO.getUserCode(),judgeDTO.getInputList());
         //创建VO对象
         UserQuestionResultVO resultVO = new UserQuestionResultVO();
         //拿到返回值之后 先去对结果进行判断

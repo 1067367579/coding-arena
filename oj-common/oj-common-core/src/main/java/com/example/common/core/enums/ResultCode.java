@@ -33,7 +33,7 @@ public enum ResultCode {
     FAILED_ALREADY_ENTER(3301,"用户已报名"), FAILED_STATUS_ERROR(3206,"未发布状态才能修改题目"),
     FAILED_FILE_UPLOAD(3005,"文件上传失败"), FAILED_FILE_UPLOAD_TIME_LIMIT(3006,"文件上传超过次数限制"),
     FAILED_FIRST_QUESTION(3401,"当前已经是第一题"), FAILED_LAST_QUESTION(3402, "当前已经是最后一题"), FAILED_EXAM_NOT_START(3205,"竞赛未开始"),
-    FAILED_LANGUAGE_NOT_SUPPORTED(3501,"编程语言不支持");
+    FAILED_LANGUAGE_NOT_SUPPORTED(3501,"编程语言不支持"), FAILED_RABBIT_PRODUCER(3502, "生产者发送消息异常");
 
     //状态码
     private final int code;

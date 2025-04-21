@@ -17,6 +17,7 @@ import com.example.friend.domain.entity.Question;
 import com.example.friend.domain.entity.QuestionES;
 import com.example.friend.elasticsearch.QuestionRepository;
 import com.example.friend.mapper.QuestionMapper;
+import com.example.friend.rabbit.JudgeProducer;
 import com.example.friend.service.UserQuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,9 @@ public class UserQuestionServiceImpl implements UserQuestionService {
     @Autowired
     private RemoteJudgeService remoteJudgeService;
 
+    @Autowired
+    private JudgeProducer judgeProducer;
+
     @Override
     public Result<UserQuestionResultVO> submit(UserSubmitDTO userSubmitDTO) {
         //检查参数 语言
@@ -43,6 +47,17 @@ public class UserQuestionServiceImpl implements UserQuestionService {
         }
         JudgeDTO judgeDTO = assembleJudgeDTO(userSubmitDTO);
         return remoteJudgeService.doJudgeJavaCode(judgeDTO);
+    }
+
+    @Override
+    public Result<UserQuestionResultVO> rabbitSubmit(UserSubmitDTO userSubmitDTO) {
+        //检查参数 语言
+        if(!ProgramType.JAVA.getValue().equals(userSubmitDTO.getProgramType())) {
+            throw new ServiceException(ResultCode.FAILED_LANGUAGE_NOT_SUPPORTED);
+        }
+        JudgeDTO judgeDTO = assembleJudgeDTO(userSubmitDTO);
+        judgeProducer.produceMessage(judgeDTO);
+        return null;
     }
 
     public JudgeDTO assembleJudgeDTO(UserSubmitDTO userSubmitDTO) {
@@ -87,4 +102,6 @@ public class UserQuestionServiceImpl implements UserQuestionService {
         }
         throw new ServiceException(ResultCode.FAILED);
     }
+
+
 }

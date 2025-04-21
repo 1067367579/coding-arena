@@ -1,4 +1,4 @@
-package com.example.judge.domain;
+package com.example.judge.domain.result;
 
 import lombok.Data;
 

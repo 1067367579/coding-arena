@@ -1,7 +1,7 @@
 package com.example.judge.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.example.judge.domain.UserSubmit;
+import com.example.judge.domain.entity.UserSubmit;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper

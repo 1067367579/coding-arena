@@ -2,7 +2,6 @@ package com.example.system.manager;
 
 import com.example.common.core.constants.CacheConstants;
 import com.example.common.redis.service.RedisService;
-import com.example.system.mapper.QuestionMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

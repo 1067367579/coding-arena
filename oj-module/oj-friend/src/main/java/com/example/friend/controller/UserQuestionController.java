@@ -25,4 +25,10 @@ public class UserQuestionController {
         return userQuestionService.submit(userSubmitDTO);
     }
 
+    @PostMapping("/rabbit/submit")
+    public Result<UserQuestionResultVO> rabbitSubmit(@RequestBody UserSubmitDTO userSubmitDTO) {
+        log.info("提交代码：{}", userSubmitDTO);
+        return userQuestionService.rabbitSubmit(userSubmitDTO);
+    }
+
 }

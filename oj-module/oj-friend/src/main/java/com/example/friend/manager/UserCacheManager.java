@@ -2,10 +2,10 @@ package com.example.friend.manager;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.example.common.redis.service.RedisService;
-import com.example.common.security.exception.ServiceException;
 import com.example.common.core.constants.CacheConstants;
 import com.example.common.core.enums.ResultCode;
+import com.example.common.redis.service.RedisService;
+import com.example.common.security.exception.ServiceException;
 import com.example.friend.domain.entity.User;
 import com.example.friend.domain.vo.UserVO;
 import com.example.friend.mapper.UserMapper;

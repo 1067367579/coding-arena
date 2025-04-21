@@ -1,8 +1,8 @@
 package com.example.common.core.controller;
 
+import com.example.common.core.constants.HttpConstants;
 import com.example.common.core.domain.PageQueryDTO;
 import com.example.common.core.domain.PageResult;
-import com.example.common.core.constants.HttpConstants;
 import com.example.common.core.domain.Result;
 import com.github.pagehelper.PageInfo;
 

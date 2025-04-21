@@ -1,11 +1,11 @@
 package com.example.friend.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.example.common.security.exception.ServiceException;
 import com.example.common.core.constants.JwtConstants;
 import com.example.common.core.domain.PageResult;
 import com.example.common.core.enums.ResultCode;
 import com.example.common.core.utils.ThreadLocalUtil;
+import com.example.common.security.exception.ServiceException;
 import com.example.friend.domain.dto.ExamQueryDTO;
 import com.example.friend.domain.dto.UserExamDTO;
 import com.example.friend.domain.entity.Exam;

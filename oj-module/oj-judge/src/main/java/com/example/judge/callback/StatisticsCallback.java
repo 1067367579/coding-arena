@@ -1,6 +1,5 @@
-package com.example.judge.service;
+package com.example.judge.callback;
 
-import com.example.common.core.domain.Result;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.model.Statistics;
 import lombok.Data;

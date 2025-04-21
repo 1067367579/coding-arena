@@ -1,4 +1,4 @@
-package com.example.judge.domain;
+package com.example.judge.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
