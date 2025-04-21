@@ -32,6 +32,12 @@
             <artifactId>docker-java</artifactId>
             <version>${docker-java.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-native-kqueue</artifactId>
+            <classifier>osx-aarch_64</classifier>
+            <version>${netty.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

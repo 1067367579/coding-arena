@@ -27,8 +27,10 @@ public class JudgeConstants {
 
     public static final String JAVA_CONTAINER_NAME = "oj-jdk";
 
+    //编译命令
     public static final String[] DOCKER_JAVAC_CMD = new String[] {"javac", "/usr/share/java/Solution.java"};
 
+    //java -cp 命令 类路径 类名
     public static final String[] DOCKER_JAVA_EXEC_CMD = new String[]{"java", "-cp", DOCKER_USER_CODE_DIR, USER_CODE_JAVA_FILE_NAME};
     //  java -cp  /usr/share/java  Solution 1 2
     public static final Integer FALSE = 0;

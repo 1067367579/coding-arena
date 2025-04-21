@@ -34,7 +34,7 @@ public class JudgeServiceImpl implements JudgeService {
     @Override
     public Result<UserQuestionResultVO> doJudgeJavaCode(JudgeDTO judgeDTO) {
         //沙盒服务执行结果返回
-        SandboxExecuteResult exeResult = sandboxService.exeJavaCode(judgeDTO.getUserCode(),judgeDTO.getInputList());
+        SandboxExecuteResult exeResult = sandboxService.exeJavaCode(judgeDTO.getUserId(), judgeDTO.getUserCode(),judgeDTO.getInputList());
         //创建VO对象
         UserQuestionResultVO resultVO = new UserQuestionResultVO();
         //拿到返回值之后 先去对结果进行判断

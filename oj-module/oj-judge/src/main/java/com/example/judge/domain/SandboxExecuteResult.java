@@ -40,7 +40,8 @@ public class SandboxExecuteResult {
         return result;
     }
 
-
-
-
+    public static SandboxExecuteResult success(CodeRunStatus codeRunStatus,List<String> outputList,
+                                            Long useMemory,Long useTime) {
+        return fail(codeRunStatus, outputList, useMemory, useTime);
+    }
 }

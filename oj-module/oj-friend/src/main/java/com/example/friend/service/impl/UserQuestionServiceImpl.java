@@ -72,6 +72,7 @@ public class UserQuestionServiceImpl implements UserQuestionService {
         judgeDTO.setExamId(userSubmitDTO.getExamId());
         judgeDTO.setUserId(userId);
         judgeDTO.setInputList(inputs);
+        judgeDTO.setProgramType(userSubmitDTO.getProgramType());
         judgeDTO.setOutputList(outputs);
         judgeDTO.setTimeLimit(questionES.getTimeLimit());
         judgeDTO.setSpaceLimit(questionES.getSpaceLimit());
