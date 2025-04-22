@@ -5,9 +5,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.api.domain.UserExeResult;
 import com.example.api.domain.dto.JudgeDTO;
 import com.example.api.domain.vo.UserQuestionResultVO;
+import com.example.common.core.constants.CacheConstants;
 import com.example.common.core.constants.JudgeConstants;
 import com.example.common.core.domain.Result;
 import com.example.common.core.enums.CodeRunStatus;
+import com.example.common.redis.service.RedisService;
 import com.example.judge.domain.entity.UserSubmit;
 import com.example.judge.domain.result.SandboxExecuteResult;
 import com.example.judge.mapper.UserSubmitMapper;
@@ -30,6 +32,8 @@ public class JudgeServiceImpl implements JudgeService {
 
     @Autowired
     UserSubmitMapper userSubmitMapper;
+    @Autowired
+    private RedisService redisService;
 
     @Transactional
     @Override
@@ -65,12 +69,16 @@ public class JudgeServiceImpl implements JudgeService {
 
     private void saveUserSubmit(JudgeDTO judgeDTO, UserQuestionResultVO resultVO) {
         //删除数据库中原有的记录
-        userSubmitMapper.delete(new LambdaQueryWrapper<UserSubmit>()
+        int result = userSubmitMapper.delete(new LambdaQueryWrapper<UserSubmit>()
                 .eq(UserSubmit::getUserId, judgeDTO.getUserId())
                 .eq(UserSubmit::getQuestionId, judgeDTO.getQuestionId())
                 .eq(judgeDTO.getExamId()!=null,
                         UserSubmit::getExamId, judgeDTO.getExamId())
         );
+        //只有是用户第一次答题，热榜才作数，避免刷榜，数据库redis不一致的问题
+        if(result == 0) {
+            redisService.zSetIncrementScoreByOne(CacheConstants.HOT_QUESTION_LIST_KEY,judgeDTO.getQuestionId());
+        }
         //存入数据库中
         UserSubmit userSubmit = new UserSubmit();
         userSubmit.setUserCode(judgeDTO.getUserCode());

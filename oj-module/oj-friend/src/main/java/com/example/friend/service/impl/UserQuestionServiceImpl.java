@@ -18,22 +18,30 @@ import com.example.common.core.utils.ThreadLocalUtil;
 import com.example.common.redis.service.RedisService;
 import com.example.common.security.exception.ServiceException;
 import com.example.friend.domain.QuestionCase;
+import com.example.friend.domain.QuestionSubmit;
 import com.example.friend.domain.dto.UserSubmitDTO;
 import com.example.friend.domain.entity.Question;
 import com.example.friend.domain.entity.QuestionES;
 import com.example.friend.domain.entity.UserSubmit;
+import com.example.friend.domain.vo.QuestionQueryVO;
+import com.example.friend.domain.vo.QuestionVO;
 import com.example.friend.elasticsearch.QuestionRepository;
 import com.example.friend.mapper.QuestionMapper;
+import com.example.friend.mapper.UserQuestionMapper;
 import com.example.friend.mapper.UserSubmitMapper;
 import com.example.friend.rabbit.JudgeProducer;
 import com.example.friend.service.UserQuestionService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.DefaultTypedTuple;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserQuestionServiceImpl implements UserQuestionService {
@@ -52,6 +60,11 @@ public class UserQuestionServiceImpl implements UserQuestionService {
 
     @Autowired
     private UserSubmitMapper userSubmitMapper;
+
+    @Autowired
+    private RedisService redisService;
+    @Autowired
+    private UserQuestionMapper userQuestionMapper;
 
     @Override
     public Result<UserQuestionResultVO> submit(UserSubmitDTO userSubmitDTO) {
@@ -78,14 +91,17 @@ public class UserQuestionServiceImpl implements UserQuestionService {
     public Result<UserQuestionResultVO> getResult(Long questionId, Long examId, String currentTime) {
         //先拿用户ID
         Long userId = (Long) ThreadLocalUtil.getLocalMap().get(JwtConstants.USER_ID);
+        LocalDateTime submitTime = null;
         //通过用户ID，问题ID，竞赛ID唯一确定记录
-        LocalDateTime submitTime = LocalDateTime.parse(currentTime, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
+        if(StrUtil.isNotEmpty(currentTime)) {
+            submitTime = LocalDateTime.parse(currentTime, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
+        }
         //SQL 查询
         UserSubmit userSubmit = userSubmitMapper.selectOne(new LambdaQueryWrapper<UserSubmit>()
                 .eq(UserSubmit::getUserId, userId)
                 .eq(UserSubmit::getQuestionId, questionId)
                 .eq(examId != null, UserSubmit::getExamId, examId)
-                .gt(UserSubmit::getCreateTime, submitTime)
+                .gt(submitTime != null,UserSubmit::getCreateTime, submitTime)
         );
         //组装VO
         UserQuestionResultVO userQuestionResultVO = new UserQuestionResultVO();
@@ -101,6 +117,38 @@ public class UserQuestionServiceImpl implements UserQuestionService {
             }
         }
         return Result.ok(userQuestionResultVO);
+    }
+
+    @Override
+    public Result<List<QuestionQueryVO>> hotQuestions(Integer top) {
+        Long size = redisService.zSetSize(CacheConstants.HOT_QUESTION_LIST_KEY);
+        if(size == null || size == 0) {
+            //数据库加载
+            Set<ZSetOperations.TypedTuple<Long>> tuples = getTypedTuples();
+            //加载成功
+            redisService.zSetAddBatch(CacheConstants.HOT_QUESTION_LIST_KEY,tuples);
+        }
+        //获取
+        Set<Long> questionIds = redisService.zRangeByList(CacheConstants.HOT_QUESTION_LIST_KEY, 0, top - 1, Long.class);
+        //去数据库中拼装VO 小范围
+        List<QuestionQueryVO> result = new ArrayList<>();
+        for(Long questionId : questionIds) {
+            result.add(questionMapper.getVOById(questionId));
+        }
+        return Result.ok(result);
+    }
+
+    private Set<ZSetOperations.TypedTuple<Long>> getTypedTuples() {
+        List<QuestionSubmit> statistics = userSubmitMapper.getQuestionSubmitStatistics();
+        //加载到zset里面
+        Set<ZSetOperations.TypedTuple<Long>> tuples = new HashSet<>();
+        for (QuestionSubmit statistic : statistics) {
+            Long questionId = statistic.getQuestionId();
+            Long count = statistic.getCount();
+            ZSetOperations.TypedTuple<Long> tuple = new DefaultTypedTuple<>(questionId,count.doubleValue());
+            tuples.add(tuple);
+        }
+        return tuples;
     }
 
     public JudgeDTO assembleJudgeDTO(UserSubmitDTO userSubmitDTO) {

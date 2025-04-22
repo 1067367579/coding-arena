@@ -4,13 +4,11 @@ import com.alibaba.fastjson2.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 @Component
 public class RedisService {
@@ -233,4 +231,27 @@ public class RedisService {
     public Object indexOf(String questionListKey, long l) {
         return redisTemplate.opsForList().index(questionListKey,l);
     }
+
+    //倒序获取元素 分页
+    public <T> Set<T> zRangeByList(String key, long start, long end, Class<T> clazz) {
+        return redisTemplate.opsForZSet().reverseRange(key,start,end);
+    }
+
+    // 批量添加元素
+    public Long zSetAddBatch(String key, Set<ZSetOperations.TypedTuple<Long>> tuples) {
+        return redisTemplate.opsForZSet().add(key,tuples);
+    }
+
+    //增加分数1
+    public Double zSetIncrementScoreByOne(String key, Long member) {
+        // 直接传入增量 1，实现原子性加 1 操作
+        return redisTemplate.opsForZSet().incrementScore(key, member, 1);
+    }
+
+    // 获取 ZSet 大小
+    public Long zSetSize(String key) {
+        return redisTemplate.opsForZSet().size(key);
+    }
+
+
 }

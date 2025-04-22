@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @Slf4j
 @RequestMapping("/question")
@@ -47,5 +49,4 @@ public class QuestionController extends BaseController {
         log.info("查找当前题目的下一题的ID:{}", questionId);
         return Result.ok(String.valueOf(questionService.next(questionId)));
     }
-
 }
