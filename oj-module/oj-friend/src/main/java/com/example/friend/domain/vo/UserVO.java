@@ -19,4 +19,5 @@ public class UserVO {
     private String school;
     private String major;
     private String introduce;
+    private Integer status;
 }

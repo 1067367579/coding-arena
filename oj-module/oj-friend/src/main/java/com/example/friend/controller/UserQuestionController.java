@@ -3,6 +3,7 @@ package com.example.friend.controller;
 import com.example.api.domain.vo.UserQuestionResultVO;
 import com.example.common.core.controller.BaseController;
 import com.example.common.core.domain.Result;
+import com.example.friend.annotation.CheckUserStatus;
 import com.example.friend.domain.dto.UserSubmitDTO;
 import com.example.friend.domain.vo.QuestionQueryVO;
 import com.example.friend.domain.vo.QuestionVO;
@@ -21,12 +22,14 @@ public class UserQuestionController extends BaseController {
     @Autowired
     private UserQuestionService userQuestionService;
 
+    @CheckUserStatus
     @PostMapping("/submit")
     public Result<UserQuestionResultVO> submit(@RequestBody UserSubmitDTO userSubmitDTO) {
         log.info("提交代码：{}", userSubmitDTO);
         return userQuestionService.submit(userSubmitDTO);
     }
 
+    @CheckUserStatus
     @PostMapping("/rabbit/submit")
     public Result<?> rabbitSubmit(@RequestBody UserSubmitDTO userSubmitDTO) {
         log.info("提交代码RabbitMQ：{}", userSubmitDTO);

@@ -1,6 +1,8 @@
 package com.example.system.service.impl;
 
+import com.example.common.core.constants.CacheConstants;
 import com.example.common.core.enums.ResultCode;
+import com.example.common.redis.service.RedisService;
 import com.example.common.security.exception.ServiceException;
 import com.example.system.domain.user.dto.UserQueryDTO;
 import com.example.system.domain.user.dto.UserStatusDTO;
@@ -19,6 +21,8 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private RedisService redisService;
 
     @Override
     public List<UserQueryVO> list(UserQueryDTO userQueryDTO) {
@@ -28,7 +32,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    //todo 拉黑之后还需要限制用户的操作
     public int updateStatus(UserStatusDTO userStatusDTO) {
         //先查到 再修改
         User user = userMapper.selectById(userStatusDTO.getUserId());
@@ -36,6 +39,11 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException(ResultCode.FAILED_NOT_EXISTS);
         }
         user.setStatus(userStatusDTO.getStatus());
-        return userMapper.updateById(user);
+        int result = userMapper.updateById(user);
+        if(result >= 0) {
+            //需要更新用户信息缓存
+            redisService.deleteObject(CacheConstants.USER_DETAIL_KEY_PREFIX+userStatusDTO.getUserId());
+        }
+        return result;
     }
 }

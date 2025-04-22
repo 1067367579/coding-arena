@@ -43,7 +43,7 @@ public class UserCacheManager {
         User user = userMapper.selectOne(new LambdaQueryWrapper<User>()
                 .select(User::getUserId, User::getEmail, User::getNickName,
                         User::getAvatar, User::getGender, User::getMajor,
-                        User::getSchool, User::getIntroduce, User::getPhone, User::getWechat)
+                        User::getSchool, User::getIntroduce, User::getPhone, User::getWechat,User::getStatus)
                 .eq(User::getUserId, userId)
         );
         //还要检测mysql中是否有数据
