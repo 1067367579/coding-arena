@@ -1,27 +1,38 @@
 package com.example.friend.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.example.api.domain.UserExeResult;
 import com.example.api.domain.dto.JudgeDTO;
 import com.example.api.domain.vo.UserQuestionResultVO;
 import com.example.api.service.RemoteJudgeService;
+import com.example.common.core.constants.CacheConstants;
 import com.example.common.core.constants.JwtConstants;
 import com.example.common.core.domain.Result;
+import com.example.common.core.enums.PassStatus;
 import com.example.common.core.enums.ProgramType;
 import com.example.common.core.enums.ResultCode;
 import com.example.common.core.utils.ThreadLocalUtil;
+import com.example.common.redis.service.RedisService;
 import com.example.common.security.exception.ServiceException;
 import com.example.friend.domain.QuestionCase;
 import com.example.friend.domain.dto.UserSubmitDTO;
 import com.example.friend.domain.entity.Question;
 import com.example.friend.domain.entity.QuestionES;
+import com.example.friend.domain.entity.UserSubmit;
 import com.example.friend.elasticsearch.QuestionRepository;
 import com.example.friend.mapper.QuestionMapper;
+import com.example.friend.mapper.UserSubmitMapper;
 import com.example.friend.rabbit.JudgeProducer;
 import com.example.friend.service.UserQuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -39,6 +50,9 @@ public class UserQuestionServiceImpl implements UserQuestionService {
     @Autowired
     private JudgeProducer judgeProducer;
 
+    @Autowired
+    private UserSubmitMapper userSubmitMapper;
+
     @Override
     public Result<UserQuestionResultVO> submit(UserSubmitDTO userSubmitDTO) {
         //检查参数 语言
@@ -50,14 +64,43 @@ public class UserQuestionServiceImpl implements UserQuestionService {
     }
 
     @Override
-    public Result<UserQuestionResultVO> rabbitSubmit(UserSubmitDTO userSubmitDTO) {
+    public boolean rabbitSubmit(UserSubmitDTO userSubmitDTO) {
         //检查参数 语言
         if(!ProgramType.JAVA.getValue().equals(userSubmitDTO.getProgramType())) {
             throw new ServiceException(ResultCode.FAILED_LANGUAGE_NOT_SUPPORTED);
         }
         JudgeDTO judgeDTO = assembleJudgeDTO(userSubmitDTO);
         judgeProducer.produceMessage(judgeDTO);
-        return null;
+        return true;
+    }
+
+    @Override
+    public Result<UserQuestionResultVO> getResult(Long questionId, Long examId, String currentTime) {
+        //先拿用户ID
+        Long userId = (Long) ThreadLocalUtil.getLocalMap().get(JwtConstants.USER_ID);
+        //通过用户ID，问题ID，竞赛ID唯一确定记录
+        LocalDateTime submitTime = LocalDateTime.parse(currentTime, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
+        //SQL 查询
+        UserSubmit userSubmit = userSubmitMapper.selectOne(new LambdaQueryWrapper<UserSubmit>()
+                .eq(UserSubmit::getUserId, userId)
+                .eq(UserSubmit::getQuestionId, questionId)
+                .eq(examId != null, UserSubmit::getExamId, examId)
+                .gt(UserSubmit::getCreateTime, submitTime)
+        );
+        //组装VO
+        UserQuestionResultVO userQuestionResultVO = new UserQuestionResultVO();
+        if(userSubmit == null) {
+            //没有结果，正在执行中
+            userQuestionResultVO.setPass(PassStatus.IN_JUDGE.getValue());
+        } else {
+            userQuestionResultVO.setPass(userSubmit.getPass());
+            userQuestionResultVO.setExeMessage(userSubmit.getExeMessage());
+            String caseJudgeRes = userSubmit.getCaseJudgeRes();
+            if(StrUtil.isNotEmpty(caseJudgeRes)) {
+                userQuestionResultVO.setUserExeResultList(JSON.parseArray(userSubmit.getCaseJudgeRes(), UserExeResult.class));
+            }
+        }
+        return Result.ok(userQuestionResultVO);
     }
 
     public JudgeDTO assembleJudgeDTO(UserSubmitDTO userSubmitDTO) {

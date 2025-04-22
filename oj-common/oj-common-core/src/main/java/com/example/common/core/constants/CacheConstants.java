@@ -28,4 +28,5 @@ public class CacheConstants {
     public static final String USER_UPLOAD_TIMES_KEY = "user:upload:time";
     public static final String QUESTION_LIST_KEY = "question:list";
     public static final String EXAM_QUESTION_LIST_KEY_PREFIX = "exam:question:list:";
+    public static final String SUBMIT_KEY_PREFIX = "submit:";
 }

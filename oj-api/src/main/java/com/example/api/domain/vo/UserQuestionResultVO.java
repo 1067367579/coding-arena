@@ -10,7 +10,7 @@ import java.util.List;
 @Setter
 //展示给friend服务的VO对象
 public class UserQuestionResultVO {
-    //0未通过 1通过
+    //0未通过 1通过 2请先执行（数据库中查不到记录） 3正在执行
     private Integer pass;
     //执行的结果信息
     private String exeMessage;

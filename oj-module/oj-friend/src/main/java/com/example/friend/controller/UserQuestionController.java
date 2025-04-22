@@ -1,20 +1,20 @@
 package com.example.friend.controller;
 
 import com.example.api.domain.vo.UserQuestionResultVO;
+import com.example.common.core.controller.BaseController;
 import com.example.common.core.domain.Result;
 import com.example.friend.domain.dto.UserSubmitDTO;
 import com.example.friend.service.UserQuestionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @Slf4j
 @RequestMapping("/user/question")
-public class UserQuestionController {
+public class UserQuestionController extends BaseController {
 
     @Autowired
     private UserQuestionService userQuestionService;
@@ -26,9 +26,15 @@ public class UserQuestionController {
     }
 
     @PostMapping("/rabbit/submit")
-    public Result<UserQuestionResultVO> rabbitSubmit(@RequestBody UserSubmitDTO userSubmitDTO) {
-        log.info("提交代码：{}", userSubmitDTO);
-        return userQuestionService.rabbitSubmit(userSubmitDTO);
+    public Result<?> rabbitSubmit(@RequestBody UserSubmitDTO userSubmitDTO) {
+        log.info("提交代码RabbitMQ：{}", userSubmitDTO);
+        return responseByService(userQuestionService.rabbitSubmit(userSubmitDTO));
+    }
+
+    @GetMapping("/exe/result")
+    public Result<UserQuestionResultVO> result(Long questionId,Long examId,String currentTime) {
+        log.info("问题：{},竞赛：{},提交时间:{}", questionId, examId, currentTime);
+        return userQuestionService.getResult(questionId,examId,currentTime);
     }
 
 }

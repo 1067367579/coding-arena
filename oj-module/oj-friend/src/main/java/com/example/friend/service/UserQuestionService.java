@@ -7,5 +7,7 @@ import com.example.friend.domain.dto.UserSubmitDTO;
 public interface UserQuestionService {
     Result<UserQuestionResultVO> submit(UserSubmitDTO userSubmitDTO);
 
-    Result<UserQuestionResultVO> rabbitSubmit(UserSubmitDTO userSubmitDTO);
+    boolean rabbitSubmit(UserSubmitDTO userSubmitDTO);
+
+    Result<UserQuestionResultVO> getResult(Long questionId, Long examId, String currentTime);
 }

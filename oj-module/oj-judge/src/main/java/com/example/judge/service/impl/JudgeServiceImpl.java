@@ -1,5 +1,6 @@
 package com.example.judge.service.impl;
 
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.api.domain.UserExeResult;
 import com.example.api.domain.dto.JudgeDTO;
@@ -80,6 +81,7 @@ public class JudgeServiceImpl implements JudgeService {
         userSubmit.setScore(resultVO.getScore());
         userSubmit.setProgramType(judgeDTO.getProgramType());
         userSubmit.setExeMessage(resultVO.getExeMessage());
+        userSubmit.setCaseJudgeRes(JSON.toJSONString(resultVO.getUserExeResultList()));
         userSubmitMapper.insert(userSubmit);
     }
 
