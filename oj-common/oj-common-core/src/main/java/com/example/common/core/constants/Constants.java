@@ -10,4 +10,5 @@ public class Constants {
     public static final String JUDGE_SERVICE = "oj-judge";
     public static final String UNDERLINE = "_";
     public static final String UTF8 = "utf-8";
+    public static final Long SYS_USER = 1L;
 }

@@ -22,7 +22,6 @@ import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.netty.NettyDockerCmdExecFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.aopalliance.reflect.Code;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;

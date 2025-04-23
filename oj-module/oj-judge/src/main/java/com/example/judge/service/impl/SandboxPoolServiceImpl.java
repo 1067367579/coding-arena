@@ -6,7 +6,6 @@ import cn.hutool.core.util.StrUtil;
 import com.example.common.core.constants.Constants;
 import com.example.common.core.constants.JudgeConstants;
 import com.example.common.core.enums.CodeRunStatus;
-import com.example.common.core.enums.ResultCode;
 import com.example.judge.callback.DockerStartResultCallBack;
 import com.example.judge.callback.StatisticsCallback;
 import com.example.judge.config.DockerSandBoxPool;
