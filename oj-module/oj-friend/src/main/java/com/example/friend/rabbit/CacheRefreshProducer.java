@@ -13,9 +13,17 @@ public class CacheRefreshProducer {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-    public void produceMessage(Long userId) {
+    public void produceMessageRefresh(Long userId) {
         try {
             rabbitTemplate.convertAndSend(RabbitMQConstants.MESSAGE_CACHE_REFRESH_QUEUE, userId);
+        } catch (Exception e) {
+            throw new ServiceException(ResultCode.FAILED_RABBIT_PRODUCER);
+        }
+    }
+
+    public void produceRankRefresh(Long examId) {
+        try {
+            rabbitTemplate.convertAndSend(RabbitMQConstants.EXAM_RANK_CACHE_REFRESH_QUEUE, examId);
         } catch (Exception e) {
             throw new ServiceException(ResultCode.FAILED_RABBIT_PRODUCER);
         }

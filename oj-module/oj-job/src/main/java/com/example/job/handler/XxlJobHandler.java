@@ -12,8 +12,10 @@ import com.example.job.domain.entity.Message;
 import com.example.job.domain.entity.MessageText;
 import com.example.job.domain.entity.UserScore;
 import com.example.job.domain.vo.ExamQueryVO;
+import com.example.job.domain.vo.ExamRankVO;
 import com.example.job.domain.vo.MessageTextVO;
 import com.example.job.mapper.ExamMapper;
+import com.example.job.mapper.UserExamMapper;
 import com.example.job.mapper.UserSubmitMapper;
 import com.example.job.service.MessageServiceImpl;
 import com.example.job.service.MessageTextServiceImpl;
@@ -48,6 +50,8 @@ public class XxlJobHandler {
 
     @Autowired
     MessageTextServiceImpl messageTextService;
+    @Autowired
+    private UserExamMapper userExamMapper;
 
     @XxlJob("examListOrganizeHandler")
     public void examListOrganizeHandler(){
@@ -66,7 +70,7 @@ public class XxlJobHandler {
         List<Exam> exams = examMapper.selectList(new LambdaQueryWrapper<Exam>()
                 .select(Exam::getExamId, Exam::getTitle)
                 .eq(Exam::getStatus,1)
-                .ge(Exam::getStartTime, minusDay)
+                //.ge(Exam::getStartTime, minusDay)
                 .le(Exam::getEndTime, now)
         );
         List<Long> examIds = exams.stream().map(Exam::getExamId).toList();
@@ -113,6 +117,12 @@ public class XxlJobHandler {
                 messageList.add(message);
                 examRank++;
             }
+            //按照userScoreList进行更新表的操作 此处无法避免for循环内进行IO操作 要按照examId刷新缓存
+            userExamMapper.updateScoreAndRank(userScoreList);
+            //同时往缓存刷新 转换对象
+            List<ExamRankVO> examRankVOS = BeanUtil.copyToList(userScoreList, ExamRankVO.class);
+            redisService.deleteObject(getExamRankListKey(examId));
+            redisService.rightPushAll(getExamRankListKey(examId),examRankVOS);
         }
         //构造完消息以及消息文本对象之后 插入 获取到text_id
         messageTextService.saveBatch(messageTextList);
@@ -141,6 +151,10 @@ public class XxlJobHandler {
         });
         //文本
         redisService.multiSet(messageTextVOMap);
+    }
+
+    public String getExamRankListKey(Long examId) {
+        return CacheConstants.EXAM_RANK_LIST_KEY_PREFIX+examId;
     }
 
     public String getUserMessageListKey(Long userId){

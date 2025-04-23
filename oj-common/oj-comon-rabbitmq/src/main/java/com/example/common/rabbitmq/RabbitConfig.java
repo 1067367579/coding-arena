@@ -27,6 +27,11 @@ public class RabbitConfig {
     }
 
     @Bean
+    public Queue examRankCacheRefreshQueue() {
+        return new Queue(RabbitMQConstants.EXAM_RANK_CACHE_REFRESH_QUEUE,true);
+    }
+
+    @Bean
     public Jackson2JsonMessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
     }

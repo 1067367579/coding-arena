@@ -51,7 +51,7 @@ public class MessageServiceImpl implements MessageService {
         PageHelper.startPage(pageQueryDTO.getPageNum(), pageQueryDTO.getPageSize());
         List<MessageTextVO> messageTextVOS = messageMapper.selectUserMessageList(userId);
         //发送消息异步刷新缓存
-        cacheRefreshProducer.produceMessage(userId);
+        cacheRefreshProducer.produceMessageRefresh(userId);
         return messageTextVOS;
     }
 

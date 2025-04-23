@@ -4,6 +4,7 @@ import com.example.common.core.controller.BaseController;
 import com.example.common.core.domain.PageResult;
 import com.example.common.core.domain.Result;
 import com.example.friend.domain.dto.ExamQueryDTO;
+import com.example.friend.domain.dto.ExamRankDTO;
 import com.example.friend.service.ExamService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,5 +53,12 @@ public class ExamController extends BaseController {
     @GetMapping("/next")
     public Result<String> next(Long examId,Long questionId) {
         return Result.ok(examService.nextQuestion(examId,questionId));
+    }
+
+    @GetMapping("/semiLogin/rank/list")
+    public PageResult getExamRankList(ExamRankDTO examRankDTO) {
+        log.info("分页查询竞赛排名:{}", examRankDTO);
+        processPageArgs(examRankDTO);
+        return examService.rankList(examRankDTO);
     }
 }
