@@ -6,7 +6,6 @@ import com.example.common.core.domain.Result;
 import com.example.friend.annotation.CheckUserStatus;
 import com.example.friend.domain.dto.UserSubmitDTO;
 import com.example.friend.domain.vo.QuestionQueryVO;
-import com.example.friend.domain.vo.QuestionVO;
 import com.example.friend.service.UserQuestionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

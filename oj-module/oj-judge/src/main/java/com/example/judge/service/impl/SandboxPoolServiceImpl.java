@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import com.example.common.core.constants.Constants;
 import com.example.common.core.constants.JudgeConstants;
 import com.example.common.core.enums.CodeRunStatus;
+import com.example.common.core.enums.ResultCode;
 import com.example.judge.callback.DockerStartResultCallBack;
 import com.example.judge.callback.StatisticsCallback;
 import com.example.judge.config.DockerSandBoxPool;
@@ -79,14 +80,17 @@ public class SandboxPoolServiceImpl implements SandboxPoolService {
             stopWatch.start();
             DockerStartResultCallBack resultCallBack = new DockerStartResultCallBack();
             try {
-                dockerClient.execStartCmd(cmdId)
+                boolean completed = dockerClient.execStartCmd(cmdId)
                         .exec(resultCallBack)
                         .awaitCompletion(timeLimit, TimeUnit.SECONDS);
+                if(!completed) {
+                    return SandboxExecuteResult.fail(CodeRunStatus.UNKNOWN_FAILED,"执行超时");
+                }
                 if(CodeRunStatus.FAILED.equals(resultCallBack.getCodeRunStatus())) {
-                    return SandboxExecuteResult.fail(CodeRunStatus.NOT_ALL_PASSED);
+                    return SandboxExecuteResult.fail(CodeRunStatus.NOT_ALL_PASSED,CodeRunStatus.NOT_ALL_PASSED.getMsg());
                 }
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                return SandboxExecuteResult.fail(CodeRunStatus.UNKNOWN_FAILED,"未知错误");
             }
             stopWatch.stop();
             statsCmd.close();
@@ -106,9 +110,11 @@ public class SandboxPoolServiceImpl implements SandboxPoolService {
     private SandboxExecuteResult getSandBoxResult(List<String> inputList, List<String> outList, long maxMemory, long maxUseTime) {
         if(inputList.size() != outList.size()) {
             //如果大小不等 一定有某些用例没有通过
-            return SandboxExecuteResult.fail(CodeRunStatus.NOT_ALL_PASSED,outList,maxMemory,maxUseTime);
+            return SandboxExecuteResult.fail(CodeRunStatus.NOT_ALL_PASSED,outList,maxMemory,maxUseTime,
+                    CodeRunStatus.NOT_ALL_PASSED.getMsg());
         }
-        return SandboxExecuteResult.success(CodeRunStatus.SUCCEED,outList,maxMemory,maxUseTime);
+        return SandboxExecuteResult.success(CodeRunStatus.SUCCEED,outList,maxMemory,maxUseTime,
+                CodeRunStatus.SUCCEED.getMsg());
     }
 
     private void createUserCodeFile(String userCode) {
@@ -134,14 +140,15 @@ public class SandboxPoolServiceImpl implements SandboxPoolService {
                     .awaitCompletion(); //阻塞等待运行完成
             if(CodeRunStatus.FAILED.equals(resultCallBack.getCodeRunStatus())) {
                 compileResult.setCompiled(false);
-                compileResult.setExeMessage(resultCallBack.getMessage());
+                compileResult.setExeMessage(resultCallBack.getErrorMessage());
             } else {
                 compileResult.setCompiled(true);
             }
-            return compileResult;
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            compileResult.setCompiled(false);
+            compileResult.setExeMessage(CodeRunStatus.UNKNOWN_FAILED.getMsg());
         }
+        return compileResult;
     }
 
     private void deleteUserCodeFile() {

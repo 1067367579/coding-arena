@@ -32,8 +32,9 @@ public class SandboxExecuteResult {
     }
 
     public static SandboxExecuteResult fail(CodeRunStatus codeRunStatus,List<String> outputList,
-                                            Long useMemory,Long useTime) {
+                                            Long useMemory,Long useTime,String exeMessage) {
         SandboxExecuteResult result = new SandboxExecuteResult();
+        result.setExeMessage(exeMessage);
         result.setRunStatus(codeRunStatus);
         result.setOutputList(outputList);
         result.setUseMemory(useMemory);
@@ -42,7 +43,7 @@ public class SandboxExecuteResult {
     }
 
     public static SandboxExecuteResult success(CodeRunStatus codeRunStatus,List<String> outputList,
-                                            Long useMemory,Long useTime) {
-        return fail(codeRunStatus, outputList, useMemory, useTime);
+                                            Long useMemory,Long useTime,String exeMessage) {
+        return fail(codeRunStatus, outputList, useMemory, useTime,exeMessage);
     }
 }

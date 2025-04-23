@@ -24,24 +24,23 @@ import com.example.friend.domain.entity.Question;
 import com.example.friend.domain.entity.QuestionES;
 import com.example.friend.domain.entity.UserSubmit;
 import com.example.friend.domain.vo.QuestionQueryVO;
-import com.example.friend.domain.vo.QuestionVO;
 import com.example.friend.elasticsearch.QuestionRepository;
 import com.example.friend.mapper.QuestionMapper;
 import com.example.friend.mapper.UserQuestionMapper;
 import com.example.friend.mapper.UserSubmitMapper;
 import com.example.friend.rabbit.JudgeProducer;
 import com.example.friend.service.UserQuestionService;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.DefaultTypedTuple;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public class UserQuestionServiceImpl implements UserQuestionService {
@@ -111,6 +110,7 @@ public class UserQuestionServiceImpl implements UserQuestionService {
         } else {
             userQuestionResultVO.setPass(userSubmit.getPass());
             userQuestionResultVO.setExeMessage(userSubmit.getExeMessage());
+            userQuestionResultVO.setScore(userSubmit.getScore());
             String caseJudgeRes = userSubmit.getCaseJudgeRes();
             if(StrUtil.isNotEmpty(caseJudgeRes)) {
                 userQuestionResultVO.setUserExeResultList(JSON.parseArray(userSubmit.getCaseJudgeRes(), UserExeResult.class));

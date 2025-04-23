@@ -22,6 +22,7 @@ import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.netty.NettyDockerCmdExecFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.aopalliance.reflect.Code;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
@@ -125,9 +126,11 @@ public class SandboxServiceImpl implements SandboxService {
     private SandboxExecuteResult getSandBoxResult(List<String> inputList, List<String> outList, long maxMemory, long maxUseTime) {
         if(inputList.size() != outList.size()) {
             //如果大小不等 一定有某些用例没有通过
-            return SandboxExecuteResult.fail(CodeRunStatus.NOT_ALL_PASSED,outList,maxMemory,maxUseTime);
+            return SandboxExecuteResult.fail(CodeRunStatus.NOT_ALL_PASSED,outList,maxMemory,maxUseTime,
+                    CodeRunStatus.FAILED.getMsg());
         }
-        return SandboxExecuteResult.success(CodeRunStatus.SUCCEED,outList,maxMemory,maxUseTime);
+        return SandboxExecuteResult.success(CodeRunStatus.SUCCEED,outList,maxMemory,maxUseTime,
+                CodeRunStatus.SUCCEED.getMsg());
     }
 
     private void createUserCodeFile(Long userId, String userCode) {

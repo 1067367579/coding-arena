@@ -3,7 +3,6 @@ package com.example.friend.controller;
 import com.example.common.core.controller.BaseController;
 import com.example.common.core.domain.PageResult;
 import com.example.common.core.domain.Result;
-import com.example.friend.annotation.CheckUserStatus;
 import com.example.friend.domain.dto.ExamQueryDTO;
 import com.example.friend.service.ExamService;
 import lombok.extern.slf4j.Slf4j;
