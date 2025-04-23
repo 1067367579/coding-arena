@@ -2,12 +2,17 @@ package com.example.job.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.example.common.core.domain.BaseEntity;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
+@TableName("tb_exam")
 public class Exam extends BaseEntity {
     @TableId(value = "exam_id", type = IdType.ASSIGN_ID)
     private Long examId;

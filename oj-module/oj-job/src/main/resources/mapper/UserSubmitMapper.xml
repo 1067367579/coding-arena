@@ -9,10 +9,9 @@
             user_id,
             sum(score) as score
         from tb_user_submit
-        where
-            <foreach collection="examIds" item="examId" open="exam_id in (" close=")" separator=",">
-                #{examId}
-            </foreach>
-            group by exam_id, user_id order by score desc
+        where exam_id is not null
+        <foreach collection="examIds" item="examId" open="and exam_id in (" close=")" separator=",">
+            #{examId}
+        </foreach> group by exam_id, user_id order by score desc
     </select>
 </mapper>

@@ -17,6 +17,16 @@ public class RabbitConfig {
     }
 
     @Bean
+    public Queue messageCacheRefreshQueue() {
+        return new Queue(RabbitMQConstants.MESSAGE_CACHE_REFRESH_QUEUE,true);
+    }
+
+    @Bean
+    public Queue examCacheRefreshQueue() {
+        return new Queue(RabbitMQConstants.EXAM_CACHE_REFRESH_QUEUE,true);
+    }
+
+    @Bean
     public Jackson2JsonMessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
     }

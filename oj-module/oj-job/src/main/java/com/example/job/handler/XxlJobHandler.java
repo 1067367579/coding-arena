@@ -65,14 +65,17 @@ public class XxlJobHandler {
         //先到竞赛表中查询结束时间在该时间段的竞赛
         List<Exam> exams = examMapper.selectList(new LambdaQueryWrapper<Exam>()
                 .select(Exam::getExamId, Exam::getTitle)
+                .eq(Exam::getStatus,1)
                 .ge(Exam::getStartTime, minusDay)
-                .le(Exam::getEndTime, minusDay)
+                .le(Exam::getEndTime, now)
         );
         List<Long> examIds = exams.stream().map(Exam::getExamId).toList();
         //去submit表根据examIds找到对应的记录 然后分组取出来
         List<UserScore> userScoreList = userSubmitMapper.getUserScoreList(examIds);
         //拿到结果之后进行分组 放到map当中好管理 按照竞赛进行隔离 之后要插入消息
-        Map<Long,List<UserScore>> userScoreMap = userScoreList.stream().collect(Collectors.groupingBy(UserScore::getExamId));
+        Map<Long,List<UserScore>> userScoreMap = userScoreList.stream()
+                 .filter(userScore -> userScore.getExamId() != null)
+                .collect(Collectors.groupingBy(UserScore::getExamId));
         createMessage(exams,userScoreMap);
     }
 
@@ -84,13 +87,15 @@ public class XxlJobHandler {
         for (Exam exam : exams) {
             Long examId = exam.getExamId();
             List<UserScore> userScoreList = userScoreMap.get(examId);
+            if(CollectionUtils.isEmpty(userScoreList)) continue;
             int totalUser = userScoreList.size();
             int examRank = 1;
             //遍历用户分数集合 构造消息
             for (UserScore userScore : userScoreList) {
                 String title = exam.getTitle() + "——排名情况";
                 String messageContent = "您所参与的竞赛："+exam.getTitle()+",本次" +
-                        "参与竞赛一共"+totalUser+"人, 您排名第"+examRank+"名!";
+                        "参与竞赛一共"+totalUser+"人, 您排名第"+examRank+"名!" +
+                        "您最后的成绩是："+userScore.getScore();
                 userScore.setExamRank(examRank);
                 //构造响应的MessageText列表插入
                 MessageText messageText = new MessageText();
@@ -127,7 +132,8 @@ public class XxlJobHandler {
         //message正式批量存入
         messageService.saveBatch(messageList);
         //操作redis 按照用户粒度
-        Map<Long,List<Message>> userMessageMap = messageList.stream().collect(Collectors.groupingBy(Message::getReceiver));
+        Map<Long,List<Message>> userMessageMap = messageList.stream().
+                collect(Collectors.groupingBy(Message::getReceiver));
         userMessageMap.forEach((userId,messages)-> {
             //按照用户逐个插入redis缓存中
             List<Long> textIds = messages.stream().map(Message::getTextId).toList();
