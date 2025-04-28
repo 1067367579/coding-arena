@@ -15,6 +15,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <module>oj-system</module>
         <module>oj-job</module>
         <module>oj-judge</module>
+        <module>oj-friend</module>
     </modules>
     <properties>
     <maven.compiler.source>17</maven.compiler.source>

@@ -1,12 +1,9 @@
 package com.example.friend.manager;
 
-import cn.hutool.core.collection.CollUtil;
 import com.example.common.core.constants.CacheConstants;
 import com.example.common.redis.service.RedisService;
 import com.example.friend.domain.dto.ExamRankDTO;
-import com.example.friend.domain.entity.UserScore;
 import com.example.friend.domain.vo.ExamRankVO;
-import com.example.friend.domain.vo.MessageTextVO;
 import com.example.friend.mapper.UserExamMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

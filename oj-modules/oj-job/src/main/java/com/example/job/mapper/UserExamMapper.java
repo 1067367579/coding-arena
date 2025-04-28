@@ -1,6 +1,5 @@
 package com.example.job.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.job.domain.entity.UserScore;
 import org.apache.ibatis.annotations.Mapper;
 

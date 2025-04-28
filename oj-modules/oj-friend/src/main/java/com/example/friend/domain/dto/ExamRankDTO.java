@@ -1,7 +1,6 @@
 package com.example.friend.domain.dto;
 
 import com.example.common.core.domain.PageQueryDTO;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
