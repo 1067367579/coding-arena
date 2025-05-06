@@ -33,4 +33,5 @@ public class CacheConstants {
     public static final String MESSAGE_DETAIL_KEY_PREFIX = "message:detail:";
     public static final String USER_MESSAGE_KEY_PREFIX = "user:message:";
     public static final String EXAM_RANK_LIST_KEY_PREFIX = "exam:rank:list:";
+    public static final String SUBMIT_LIMITER_KEY_PREFIX = "submit:limiter:";
 }

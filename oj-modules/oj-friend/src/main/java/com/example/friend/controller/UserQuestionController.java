@@ -3,6 +3,7 @@ package com.example.friend.controller;
 import com.example.api.domain.vo.UserQuestionResultVO;
 import com.example.common.core.controller.BaseController;
 import com.example.common.core.domain.Result;
+import com.example.friend.annotation.CheckRateLimiter;
 import com.example.friend.annotation.CheckUserStatus;
 import com.example.friend.domain.dto.UserSubmitDTO;
 import com.example.friend.domain.vo.QuestionQueryVO;
@@ -21,6 +22,7 @@ public class UserQuestionController extends BaseController {
     @Autowired
     private UserQuestionService userQuestionService;
 
+    @CheckRateLimiter
     @CheckUserStatus
     @PostMapping("/submit")
     public Result<UserQuestionResultVO> submit(@RequestBody UserSubmitDTO userSubmitDTO) {
@@ -28,6 +30,7 @@ public class UserQuestionController extends BaseController {
         return userQuestionService.submit(userSubmitDTO);
     }
 
+    @CheckRateLimiter
     @CheckUserStatus
     @PostMapping("/rabbit/submit")
     public Result<?> rabbitSubmit(@RequestBody UserSubmitDTO userSubmitDTO) {

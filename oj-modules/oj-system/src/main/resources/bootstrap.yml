@@ -7,11 +7,11 @@ spring:
   cloud:
     nacos:
       config:
-        server-addr: http://114.132.235.199:8848
-        namespace: ff584b75-4fce-4648-a046-34fd21013463
+        server-addr: http://121.37.19.15:8848
+        namespace: a8630a03-a310-470f-b5a5-96ec8d7311aa
         file-extension: yaml
       discovery:
-        server-addr: http://114.132.235.199:8848
-        namespace: ff584b75-4fce-4648-a046-34fd21013463
+        server-addr: http://121.37.19.15:8848
+        namespace: a8630a03-a310-470f-b5a5-96ec8d7311aa
 mybatis-plus:
   mapper-locations: mapper/*.xml
