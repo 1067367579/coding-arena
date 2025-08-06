@@ -32,6 +32,7 @@ import com.example.friend.rabbit.JudgeProducer;
 import com.example.friend.service.UserQuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.DefaultTypedTuple;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +42,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserQuestionServiceImpl implements UserQuestionService {
@@ -62,8 +64,11 @@ public class UserQuestionServiceImpl implements UserQuestionService {
 
     @Autowired
     private RedisService redisService;
+
     @Autowired
     private UserQuestionMapper userQuestionMapper;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     @Override
     public Result<UserQuestionResultVO> submit(UserSubmitDTO userSubmitDTO) {
@@ -72,7 +77,18 @@ public class UserQuestionServiceImpl implements UserQuestionService {
             throw new ServiceException(ResultCode.FAILED_LANGUAGE_NOT_SUPPORTED);
         }
         JudgeDTO judgeDTO = assembleJudgeDTO(userSubmitDTO);
+        String submitKey = getSubmitKey(judgeDTO);
+        stringRedisTemplate.opsForValue().set(submitKey, "",15L, TimeUnit.SECONDS);
         return remoteJudgeService.doJudgeJavaCode(judgeDTO);
+    }
+
+    public String getSubmitKey(JudgeDTO judgeDTO) {
+        if(judgeDTO.getExamId() == null) {
+            return CacheConstants.SUBMIT_KEY_PREFIX+judgeDTO.getUserId()
+                    +":"+judgeDTO.getQuestionId();
+        }
+        return CacheConstants.SUBMIT_KEY_PREFIX+judgeDTO.getUserId()
+                +":"+judgeDTO.getExamId()+":"+judgeDTO.getQuestionId();
     }
 
     @Override
@@ -82,6 +98,8 @@ public class UserQuestionServiceImpl implements UserQuestionService {
             throw new ServiceException(ResultCode.FAILED_LANGUAGE_NOT_SUPPORTED);
         }
         JudgeDTO judgeDTO = assembleJudgeDTO(userSubmitDTO);
+        String submitKey = getSubmitKey(judgeDTO);
+        stringRedisTemplate.opsForValue().set(submitKey, "",15L, TimeUnit.SECONDS);
         judgeProducer.produceMessage(judgeDTO);
         return true;
     }
@@ -90,6 +108,32 @@ public class UserQuestionServiceImpl implements UserQuestionService {
     public Result<UserQuestionResultVO> getResult(Long questionId, Long examId, String currentTime) {
         //先拿用户ID
         Long userId = (Long) ThreadLocalUtil.getLocalMap().get(JwtConstants.USER_ID);
+        //组装VO
+        UserQuestionResultVO userQuestionResultVO = new UserQuestionResultVO();
+        //先查redis中有无数据 注意缓存穿透
+        JudgeDTO judgeDTO = new JudgeDTO();
+        judgeDTO.setUserId(userId);
+        judgeDTO.setExamId(examId);
+        judgeDTO.setQuestionId(questionId);
+        String submitKey = getSubmitKey(judgeDTO);
+        String jsonStr = stringRedisTemplate.opsForValue().get(submitKey);
+        if(jsonStr!=null) {
+            if(jsonStr.isEmpty()) {
+                //防止缓存穿透 直接返回正在处理中
+                userQuestionResultVO.setPass(PassStatus.IN_JUDGE.getValue());
+            } else {
+                //redis中有值
+                UserSubmit userSubmit = JSON.parseObject(jsonStr, UserSubmit.class);
+                userQuestionResultVO.setPass(userSubmit.getPass());
+                userQuestionResultVO.setExeMessage(userSubmit.getExeMessage());
+                userQuestionResultVO.setScore(userSubmit.getScore());
+                String caseJudgeRes = userSubmit.getCaseJudgeRes();
+                if(StrUtil.isNotEmpty(caseJudgeRes)) {
+                    userQuestionResultVO.setUserExeResultList(JSON.parseArray(userSubmit.getCaseJudgeRes(), UserExeResult.class));
+                }
+            }
+            return Result.ok(userQuestionResultVO);
+        }
         LocalDateTime submitTime = null;
         //通过用户ID，问题ID，竞赛ID唯一确定记录
         if(StrUtil.isNotEmpty(currentTime)) {
@@ -102,12 +146,12 @@ public class UserQuestionServiceImpl implements UserQuestionService {
                 .eq(examId != null, UserSubmit::getExamId, examId)
                 .gt(submitTime != null,UserSubmit::getCreateTime, submitTime)
         );
-        //组装VO
-        UserQuestionResultVO userQuestionResultVO = new UserQuestionResultVO();
         if(userSubmit == null) {
             //没有结果，正在执行中
+            stringRedisTemplate.opsForValue().set(submitKey, "",15L, TimeUnit.SECONDS);
             userQuestionResultVO.setPass(PassStatus.IN_JUDGE.getValue());
         } else {
+            stringRedisTemplate.opsForValue().set(submitKey, JSON.toJSONString(userSubmit), 1L, TimeUnit.HOURS);
             userQuestionResultVO.setPass(userSubmit.getPass());
             userQuestionResultVO.setExeMessage(userSubmit.getExeMessage());
             userQuestionResultVO.setScore(userSubmit.getScore());

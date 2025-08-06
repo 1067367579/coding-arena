@@ -36,6 +36,7 @@ public class DockerSandBoxPool {
 
     private Map<String,String> containerMap;
 
+    //每个服务都维护一定数目的容器池
     public DockerSandBoxPool(DockerClient dockerClient, String imageName, String volumeDir,
                              Long memoryLimit, Long memorySwapLimit, Long cpuLimit,
                              Integer poolSize, String containerNamePrefix) {

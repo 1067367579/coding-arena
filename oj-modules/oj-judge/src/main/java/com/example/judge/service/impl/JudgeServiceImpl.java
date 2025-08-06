@@ -17,11 +17,13 @@ import com.example.judge.service.JudgeService;
 import com.example.judge.service.SandboxPoolService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -34,6 +36,8 @@ public class JudgeServiceImpl implements JudgeService {
     UserSubmitMapper userSubmitMapper;
     @Autowired
     private RedisService redisService;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     @Transactional
     @Override
@@ -91,6 +95,18 @@ public class JudgeServiceImpl implements JudgeService {
         userSubmit.setExeMessage(resultVO.getExeMessage());
         userSubmit.setCaseJudgeRes(JSON.toJSONString(resultVO.getUserExeResultList()));
         userSubmitMapper.insert(userSubmit);
+        //存入缓存当中
+        String submitKey = getSubmitKey(judgeDTO);
+        stringRedisTemplate.opsForValue().set(submitKey,JSON.toJSONString(userSubmit), 1L, TimeUnit.HOURS);
+    }
+
+    public String getSubmitKey(JudgeDTO judgeDTO) {
+        if(judgeDTO.getExamId() == null) {
+            return CacheConstants.SUBMIT_KEY_PREFIX+judgeDTO.getUserId()
+                    +":"+judgeDTO.getQuestionId();
+        }
+        return CacheConstants.SUBMIT_KEY_PREFIX+judgeDTO.getUserId()
+                +":"+judgeDTO.getExamId()+":"+judgeDTO.getQuestionId();
     }
 
     private static void judge(JudgeDTO judgeDTO, SandboxExecuteResult exeResult, UserQuestionResultVO resultVO) {

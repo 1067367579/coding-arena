@@ -31,6 +31,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 //过滤器也是一个组件 要交给Spring管理
@@ -93,6 +96,7 @@ public class AuthFilter implements GlobalFilter, Ordered {
         }
         return chain.filter(exchange);
     }
+
 
     /**
      * 鉴权失败处理方法
