@@ -1074,8 +1074,346 @@ services:
 - **云原生**：Kubernetes原生部署
 - **多云支持**：阿里云/腾讯云/华为云适配
 
----
 
-**文档版本**：V1.0  
-**最后更新**：2024年8月  
-**维护团队**：Coding Arena开发组
+## 新增讨论区功能
+
+讨论区功能为在线评测系统新增了社交互动能力，用户可以在每道题目和竞赛下方创建讨论帖子，分享解题思路，其他用户可以进行评论、点赞等互动。
+
+### 功能特性
+
+#### 核心功能
+- **帖子管理**：创建、编辑、删除讨论帖子
+- **评论系统**：支持多级评论和回复
+- **点赞系统**：高并发点赞/取消点赞
+- **排序展示**：支持按点赞数、时间、评论数排序
+- **防刷机制**：浏览量防刷、点赞防刷
+- **缓存优化**：多级缓存提升性能
+
+#### 技术特性
+- **高并发处理**：Redis分布式锁 + 消息队列
+- **缓存策略**：多级缓存，自动失效
+- **数据一致性**：最终一致性保证
+- **防刷保护**：IP限流 + 用户行为分析
+
+### 数据库设计
+
+#### 核心表结构
+
+##### 讨论帖子表 (discussion_post)
+```sql
+CREATE TABLE discussion_post (
+    post_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL COMMENT '发帖用户ID',
+    question_id BIGINT COMMENT '关联题目ID',
+    exam_id BIGINT COMMENT '关联竞赛ID',
+    title VARCHAR(200) NOT NULL COMMENT '帖子标题',
+    content TEXT NOT NULL COMMENT '帖子内容',
+    content_html TEXT COMMENT '帖子HTML内容',
+    view_count INT DEFAULT 0 COMMENT '浏览次数',
+    like_count INT DEFAULT 0 COMMENT '点赞数',
+    comment_count INT DEFAULT 0 COMMENT '评论数',
+    is_top TINYINT DEFAULT 0 COMMENT '是否置顶',
+    is_hot TINYINT DEFAULT 0 COMMENT '是否热门',
+    status TINYINT DEFAULT 1 COMMENT '状态',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+##### 讨论评论表 (discussion_comment)
+```sql
+CREATE TABLE discussion_comment (
+    comment_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    post_id BIGINT NOT NULL COMMENT '帖子ID',
+    user_id BIGINT NOT NULL COMMENT '评论用户ID',
+    parent_id BIGINT DEFAULT 0 COMMENT '父评论ID',
+    content TEXT NOT NULL COMMENT '评论内容',
+    content_html TEXT COMMENT '评论HTML内容',
+    like_count INT DEFAULT 0 COMMENT '点赞数',
+    reply_count INT DEFAULT 0 COMMENT '回复数',
+    status TINYINT DEFAULT 1 COMMENT '状态',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+##### 点赞记录表 (discussion_like)
+```sql
+CREATE TABLE discussion_like (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    target_type TINYINT NOT NULL COMMENT '点赞目标类型 1帖子 2评论',
+    target_id BIGINT NOT NULL COMMENT '目标ID',
+    status TINYINT DEFAULT 1 COMMENT '状态 1点赞 2取消',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_user_target (user_id, target_type, target_id)
+);
+```
+
+### API接口文档
+
+#### 帖子相关接口
+
+##### 创建帖子
+```http
+POST /discussion/post
+Content-Type: application/json
+
+{
+  "questionId": 123,
+  "examId": null,
+  "title": "这是一个讨论帖",
+  "content": "这是帖子内容...",
+  "contentHtml": "<p>这是帖子内容...</p>"
+}
+```
+
+##### 查询帖子列表
+```http
+GET /discussion/post?questionId=123&sortType=1&pageNum=1&pageSize=10
+```
+
+参数说明：
+- `questionId`: 题目ID（可选）
+- `examId`: 竞赛ID（可选）
+- `sortType`: 排序方式 1点赞数 2时间 3评论数
+- `pageNum`: 页码
+- `pageSize`: 每页数量
+
+##### 查询帖子详情
+```http
+GET /discussion/post/{postId}
+```
+
+#### 评论相关接口
+
+##### 创建评论
+```http
+POST /discussion/comment
+Content-Type: application/json
+
+{
+  "postId": 123,
+  "parentId": 0,
+  "content": "这是一条评论",
+  "contentHtml": "<p>这是一条评论</p>"
+}
+```
+
+##### 查询评论列表
+```http
+GET /discussion/comment?postId=123&parentId=0&pageNum=1&pageSize=10
+```
+
+##### 获取评论树
+```http
+GET /discussion/comment/tree?postId=123
+```
+
+#### 点赞相关接口
+
+##### 点赞/取消点赞
+```http
+POST /discussion/like
+Content-Type: application/json
+
+{
+  "targetType": 1,
+  "targetId": 123
+}
+```
+
+##### 检查点赞状态
+```http
+GET /discussion/like/status?targetType=1&targetId=123
+```
+
+##### 获取点赞数量
+```http
+GET /discussion/like/count?targetType=1&targetId=123
+```
+
+### Redis缓存策略
+
+#### 缓存键设计
+
+##### 帖子缓存
+- `discussion:post:detail:{postId}` - 帖子详情缓存（1小时）
+- `discussion:post:list:{queryKey}` - 帖子列表缓存（5分钟）
+- `discussion:post:like:{postId}` - 帖子点赞数缓存（10分钟）
+- `discussion:post:view:{postId}` - 帖子浏览数缓存（10分钟）
+
+##### 评论缓存
+- `discussion:comment:detail:{commentId}` - 评论详情缓存（5分钟）
+- `discussion:comment:list:{postId}:{parentId}:{page}` - 评论列表缓存（5分钟）
+
+##### 用户缓存
+- `discussion:user:like:{userId}:{targetType}:{targetId}` - 用户点赞状态缓存（10分钟）
+- `discussion:user:view:{postId}:{userId}` - 用户浏览记录缓存（1小时）
+
+#### 缓存失效策略
+- **TTL过期**：所有缓存都有明确的过期时间
+- **主动失效**：数据变更时主动清除相关缓存
+- **LRU淘汰**：Redis内存不足时的淘汰策略
+
+### 高并发优化
+
+#### 点赞功能优化
+1. **Redis分布式锁**：防止并发点赞冲突
+2. **原子操作**：使用Redis的INCR/DECR操作
+3. **消息队列**：异步处理点赞通知
+4. **缓存预热**：热门数据提前加载
+
+#### 浏览量防刷
+1. **IP限流**：基于IP的访问频率限制
+2. **用户识别**：结合用户ID和IP地址
+3. **时间窗口**：1小时内重复访问不计数
+4. **缓存记录**：使用Redis记录访问状态
+
+#### 数据库优化
+1. **索引设计**：合理的数据库索引
+2. **读写分离**：主从数据库架构
+3. **分库分表**：按业务模块分库
+4. **连接池**：HikariCP连接池优化
+
+### 使用示例
+
+#### 完整使用流程
+
+##### 1. 创建讨论帖子
+```java
+// 创建帖子
+CreatePostDTO postDTO = new CreatePostDTO();
+postDTO.setQuestionId(123L);
+postDTO.setTitle("这道题的二分查找解法");
+postDTO.setContent("分享一下我的解题思路...");
+
+Long postId = discussionPostService.createPost(postDTO, userId);
+```
+
+##### 2. 发布评论
+```java
+// 创建一级评论
+CreateCommentDTO commentDTO = new CreateCommentDTO();
+commentDTO.setPostId(postId);
+commentDTO.setParentId(0L);
+commentDTO.setContent("这个解法很巧妙！");
+
+Long commentId = discussionCommentService.createComment(commentDTO, userId);
+
+// 回复评论
+CreateCommentDTO replyDTO = new CreateCommentDTO();
+replyDTO.setPostId(postId);
+replyDTO.setParentId(commentId);
+replyDTO.setContent("我也有类似的思路...");
+
+Long replyId = discussionCommentService.createComment(replyDTO, userId);
+```
+
+##### 3. 点赞操作
+```java
+// 帖子点赞
+LikeDTO likeDTO = new LikeDTO();
+likeDTO.setTargetType(1); // 帖子
+likeDTO.setTargetId(postId);
+discussionLikeService.toggleLike(likeDTO, userId);
+
+// 评论点赞
+LikeDTO commentLikeDTO = new LikeDTO();
+commentLikeDTO.setTargetType(2); // 评论
+commentLikeDTO.setTargetId(commentId);
+discussionLikeService.toggleLike(commentLikeDTO, userId);
+```
+
+### 性能指标
+
+#### 响应时间
+- 帖子列表查询：< 100ms
+- 帖子详情查询：< 50ms
+- 点赞操作：< 200ms
+- 评论提交：< 300ms
+
+#### 并发能力
+- 点赞QPS：> 1000
+- 帖子查询QPS：> 500
+- 评论提交QPS：> 200
+
+#### 缓存命中率
+- 帖子详情：> 90%
+- 帖子列表：> 80%
+- 点赞状态：> 95%
+
+### 错误处理
+
+#### 常见错误码
+- `400` 参数错误
+- `401` 未授权访问
+- `403` 权限不足
+- `404` 资源不存在
+- `429` 请求过于频繁
+- `500` 服务器内部错误
+
+#### 异常处理策略
+1. **参数验证**：前端+后端双重验证
+2. **限流保护**：接口级限流
+3. **降级策略**：缓存降级+静态数据
+4. **监控告警**：实时异常监控
+
+### 部署配置
+
+#### Redis配置
+```yaml
+spring:
+  redis:
+    host: localhost
+    port: 6379
+    password: yourpassword
+    timeout: 3000ms
+    lettuce:
+      pool:
+        max-active: 20
+        max-idle: 10
+        min-idle: 5
+```
+
+#### 应用配置
+```yaml
+discussion:
+  cache:
+    post-detail-ttl: 3600  # 帖子详情缓存1小时
+    post-list-ttl: 300     # 帖子列表缓存5分钟
+    like-ttl: 600         # 点赞缓存10分钟
+  rate-limit:
+    like-per-minute: 60   # 每分钟最多60次点赞
+    view-per-hour: 100    # 每小时最多100次浏览
+```
+
+### 监控和维护
+
+#### 关键监控指标
+- 缓存命中率
+- 数据库连接数
+- Redis内存使用
+- 接口响应时间
+- 错误率
+
+#### 维护建议
+1. **定期清理**：过期数据清理
+2. **性能调优**：基于监控数据优化
+3. **容量规划**：根据业务量扩容
+4. **安全更新**：及时更新依赖库
+
+### 扩展功能规划
+
+#### 近期扩展
+- 图片上传功能
+- 富文本编辑器
+- 代码高亮
+- 通知系统
+
+#### 远期规划
+- AI内容审核
+- 用户等级系统
+- 积分奖励机制
+- 社区管理功能
