@@ -32,7 +32,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <jaxb-xml.version>2.4.0-b180830.0359</jaxb-xml.version>
         <pagehelper.version>1.4.7</pagehelper.version>
         <hutool.version>5.8.22</hutool.version>
-        <xxl-job.version>2.4.0</xxl-job.version>
+        <xxl-job.version>2.4.1</xxl-job.version>
         <thread-local.version>2.12.0</thread-local.version>
         <aliyun-oss-sdk.version>3.17.4</aliyun-oss-sdk.version>
         <javax-activation.version>1.1.1</javax-activation.version>
