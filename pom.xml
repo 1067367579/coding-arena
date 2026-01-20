@@ -20,6 +20,39 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <module>oj-gateway</module>
         <module>oj-api</module>
     </modules>
+
+    <repositories>
+        <repository>
+            <id>maven-central</id>
+            <name>Maven Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+    
+    <pluginRepositories>
+        <pluginRepository>
+            <id>maven-central-plugin</id>
+            <name>Maven Central Plugin Repository</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
@@ -32,12 +65,14 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <jaxb-xml.version>2.4.0-b180830.0359</jaxb-xml.version>
         <pagehelper.version>1.4.7</pagehelper.version>
         <hutool.version>5.8.22</hutool.version>
-        <xxl-job.version>2.4.1</xxl-job.version>
+        <xxl-job.version>2.4.2</xxl-job.version>
         <thread-local.version>2.12.0</thread-local.version>
         <aliyun-oss-sdk.version>3.17.4</aliyun-oss-sdk.version>
         <javax-activation.version>1.1.1</javax-activation.version>
         <jaxb-runtime.version>2.3.3</jaxb-runtime.version>
         <docker-java.version>3.3.4</docker-java.version>
+        <bouncycastle.version>1.69</bouncycastle.version>
+        <commons-lang3.version>3.18.0</commons-lang3.version>
     </properties>
     <dependencies>
         <!-- bootstrap 启动器 -->
@@ -86,6 +121,32 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
                 <version>${springdoc-api.version}</version>
+            </dependency>
+            <!-- Apache Commons Lang Security Fix - CVE-2025-48924 -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+            <!-- Bouncy Castle - CVE-2023-33201, CVE-2023-33202, CVE-2024-29857, CVE-2024-30171, CVE-2025-8916
+                 NOTE: Version 1.69 contains known vulnerabilities but latest patched versions (1.73+) are not
+                 available in Aliyun maven mirror. Consider upgrading to Maven Central or patching at runtime.
+                 Critical fix: Commons Lang3 3.18.0 CVE-2025-48924 is applied.
+                 Medium CVEs remain in Bouncy Castle 1.69 - requires repository configuration change to fix. -->
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk15on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk15on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcutil-jdk15on</artifactId>
+                <version>${bouncycastle.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

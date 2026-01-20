@@ -1,1086 +1,928 @@
-# Coding Arena - API接口文档
+# Coding Arena - 全量接口与业务链路文档（基于代码静态整理）
 
-> 本文档涵盖所有C端用户接口和B端管理后台接口的详细说明
+> 生成时间：2026-01-19  
+> 说明：本文档基于仓库源码静态扫描与阅读整理；`oj-gateway` 的路由与白名单来自 Nacos 配置（仓库内不包含全量配置），因此“网关URL/是否白名单”部分按代码可推断的默认约定给出，并标注需要以 Nacos 实际配置为准。
 
----
+## 1. 服务模块与职责
 
-## 一、接口规范
+| 服务/模块 | 作用 |
+|---|---|
+| `oj-gateway` | 网关：统一鉴权、按路径前缀区分用户端/管理端 |
+| `oj-modules/oj-friend` | 用户端服务：用户、题目、提交/判题触发、竞赛、消息、文件上传 |
+| `oj-modules/oj-system` | 管理端服务：管理员登录、题库管理、竞赛管理、C端用户管理 |
+| `oj-modules/oj-judge` | 判题服务：沙箱执行、判题、结果落库/缓存；支持 HTTP/ RabbitMQ 两种触发 |
+| `oj-modules/oj-job` | 任务服务：XXL-Job 负责竞赛缓存刷新、竞赛结果统计与消息生成 |
+| `oj-api` | 跨服务 DTO/VO、Feign 接口（`RemoteJudgeService`） |
+| `oj-common` | 通用组件：统一响应、Redis/安全/文件/消息/RabbitMQ 等基础能力 |
 
-### 1.1 统一响应格式
+## 2. 网关鉴权、身份与调用约定
 
-所有接口均返回 `Result<T>` 包装结构：
+### 2.1 网关鉴权（`oj-gateway`）
+
+- 实现位置：`oj-gateway/src/main/java/com/example/gateway/filter/AuthFilter.java`
+- Token Header：`authentication: Bearer <jwt>`
+- 鉴权流程（核心）：
+  - 白名单匹配（来自 Nacos `security.ignore.whiteList`）命中则放行
+  - 否则校验 JWT
+  - 校验 Redis 登录态：`login:token:<userId>` 必须存在
+  - 身份与路径匹配（字符串包含判断）：
+    - URL 包含 `system` ⇒ 必须为管理员（`LoginUser.identity = 2`）
+    - URL 包含 `friend` ⇒ 必须为普通用户（`LoginUser.identity = 1`）
+
+### 2.2 服务侧 ThreadLocal（`TokenInterceptor`）
+
+- 实现位置：`oj-common/oj-common-security/src/main/java/com/example/common/security/intercptor/TokenInterceptor.java`
+- 说明：
+  - 微服务侧会从 Header 解析 token，并把 `userId` 写入 `ThreadLocalUtil`（业务代码无需在接口参数中显式传 `userId`）
+  - 同时对 Redis 登录态 TTL 进行续签（延长会话）
+- 拦截器排除路径（见 `WebMvcConfig`）：`/**/login`、`/**/code`
+
+### 2.3 网关 URL 前缀约定（需结合 Nacos 路由核对）
+
+仓库内未包含网关路由配置，但鉴权逻辑依赖 URL 含 `friend/system` 进行身份匹配。常见约定如下（若 Nacos 路由不同，请以实际为准）：
+
+- 用户端（`oj-friend`）：网关前缀通常为 `/friend`，并配置 `StripPrefix=1` ⇒ 外部URL≈`/friend` + 服务内部 Controller 路径
+- 管理端（`oj-system`）：网关前缀通常为 `/system`，并配置 `StripPrefix=1` ⇒ 外部URL≈`/system` + 服务内部 Controller 路径
+- 判题（`oj-judge`）：通常为内部服务直连（Feign/RabbitMQ），不建议经网关对外暴露
+
+## 3. 统一响应结构
+
+### 3.1 `Result<T>`（统一返回）
 
 ```json
 {
   "code": 1000,
   "msg": "操作成功",
-  "data": { ... }
+  "data": {}
 }
 ```
 
-**分页响应格式** (`PageResult`)：
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `code` | `int` | 业务状态码（见 `ResultCode`） |
+| `msg` | `String` | 状态说明 |
+| `data` | `T` | 响应数据 |
+
+### 3.2 `PageResult`（分页返回）
 
 ```json
 {
-  "total": 100,
-  "rows": [ ... ],
+  "total": 0,
+  "rows": [],
   "code": 1000,
   "msg": "操作成功"
 }
 ```
 
-### 1.2 状态码说明
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `total` | `long` | 总数 |
+| `rows` | `List<?>` | 当前页数据 |
+| `code` | `int` | 业务状态码 |
+| `msg` | `String` | 状态说明 |
 
-| 状态码 | 说明 |
-|-------|------|
-| 1000 | 操作成功 |
-| 2000 | 服务繁忙，请稍后重试 |
-| 3001 | 未授权访问 |
-| 3002 | 令牌过期 |
-| 3101 | 用户不存在 |
-| 3102 | 用户状态异常 |
-| 3103 | 提交过于频繁 |
-| 3104 | 竞赛不在进行中 |
-| 3105 | 题目不存在 |
+## 4. 数据结构（请求/响应 DTO/VO）
 
-### 1.3 认证方式
+### 4.1 鉴权与登录态
 
-- **Header参数**：`Authorization: Bearer {token}`
-- **白名单接口**：无需token即可访问
-- **带@CheckRateLimiter接口**：需用户登录+限流检查
-- **带@CheckUserStatus接口**：需用户登录+状态正常
+#### 4.1.1 `LoginUser`
 
----
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `identity` | `Integer` | 身份：`1=普通用户`，`2=管理员` |
+| `nickName` | `String` | 昵称 |
+| `avatar` | `String` | 头像URL（用户端） |
 
-## 二、用户认证模块 (/user)
+### 4.2 用户端（`oj-friend`）
 
-### 2.1 发送验证码
+#### 4.2.1 `SendCodeDTO`
 
-**接口地址**：`POST /user/code`
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `email` | `String` | 是 | 邮箱（正则校验） |
 
-**接口说明**：向指定邮箱发送6位数字验证码，用于注册或登录
+#### 4.2.2 `UserLoginDTO`
 
-**是否需要token**：否（白名单）
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `email` | `String` | 是 | 邮箱（正则校验） |
+| `code` | `String` | 是 | 验证码（长度=6） |
 
-**请求参数**：
+#### 4.2.3 `UserEditDTO`
 
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| email | String | 是 | 邮箱地址（正则验证格式） |
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `avatar` | `String` | 否 | 头像URL |
+| `nickName` | `String` | 否 | 昵称 |
+| `gender` | `Integer` | 否 | 性别（具体枚举以业务为准） |
+| `school` | `String` | 否 | 学校 |
+| `major` | `String` | 否 | 专业 |
+| `phone` | `String` | 否 | 手机号 |
+| `wechat` | `String` | 否 | 微信号 |
+| `introduce` | `String` | 否 | 个人简介 |
 
-**请求示例**：
+#### 4.2.4 `UserVO`
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `userId` | `Long` | 用户ID（序列化为字符串避免前端精度丢失） |
+| `nickName` | `String` | 昵称 |
+| `avatar` | `String` | 头像 |
+| `gender` | `Integer` | 性别 |
+| `phone` | `String` | 电话 |
+| `email` | `String` | 邮箱 |
+| `wechat` | `String` | 微信 |
+| `school` | `String` | 学校 |
+| `major` | `String` | 专业 |
+| `introduce` | `String` | 简介 |
+| `status` | `Integer` | 状态（`1正常/0冻结`） |
+
+#### 4.2.5 `QuestionQueryDTO`（继承 `PageQueryDTO`）
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `pageNum` | `Integer` | 否 | 页码（默认 1） |
+| `pageSize` | `Integer` | 否 | 每页大小（默认 10） |
+| `keyword` | `String` | 否 | 关键字（title/content 命中其一即可） |
+| `difficulty` | `Integer` | 否 | 难度 |
+
+#### 4.2.6 `QuestionQueryVO` / `QuestionVO`
+
+`QuestionQueryVO`：
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `questionId` | `Long` | 题目ID（序列化为字符串） |
+| `title` | `String` | 标题 |
+| `difficulty` | `Integer` | 难度 |
+
+`QuestionVO`（额外字段）：
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `timeLimit` | `Integer` | 时间限制 |
+| `spaceLimit` | `Integer` | 空间限制 |
+| `content` | `String` | 题目内容 |
+| `defaultCode` | `String` | 默认代码 |
+
+#### 4.2.7 `UserSubmitDTO`
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `examId` | `Long` | 否 | 竞赛ID（非竞赛练习可不传） |
+| `questionId` | `Long` | 是 | 题目ID |
+| `programType` | `Integer` | 是 | 语言类型（`0=Java`，`1=CPP`；当前仅支持 Java） |
+| `userCode` | `String` | 是 | 用户代码（不含主函数，服务端会拼接 `mainFunc`） |
+
+#### 4.2.8 `JudgeDTO`（跨服务）
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `userId` | `Long` | 用户ID |
+| `examId` | `Long` | 竞赛ID（可为空） |
+| `questionId` | `Long` | 题目ID |
+| `programType` | `Integer` | 语言 |
+| `difficulty` | `Integer` | 难度 |
+| `timeLimit` | `Long` | 时间限制 |
+| `spaceLimit` | `Long` | 空间限制 |
+| `userCode` | `String` | 待执行代码（已拼接 main 函数） |
+| `inputList` | `List<String>` | 输入用例列表 |
+| `outputList` | `List<String>` | 标准输出列表 |
+
+#### 4.2.9 `UserQuestionResultVO` / `UserExeResult`（跨服务）
+
+`UserQuestionResultVO`：
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `pass` | `Integer` | 通过状态：`0未通过/1通过/2请先提交/3判题中` |
+| `exeMessage` | `String` | 执行信息（编译错误/超时/通过等） |
+| `userExeResultList` | `List<UserExeResult>` | 用例对比详情 |
+| `score` | `Integer` | 得分 |
+
+`UserExeResult`：
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `input` | `String` | 输入 |
+| `output` | `String` | 期望输出 |
+| `exeOutput` | `String` | 实际输出 |
+
+#### 4.2.10 `ExamQueryDTO` / `ExamRankDTO`
+
+`ExamQueryDTO`：
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `pageNum` | `Integer` | 否 | 页码 |
+| `pageSize` | `Integer` | 否 | 每页大小 |
+| `startTime` | `LocalDateTime` | 否 | 开始时间筛选（`yyyy-MM-dd HH:mm:ss`） |
+| `endTime` | `LocalDateTime` | 否 | 结束时间筛选（`yyyy-MM-dd HH:mm:ss`） |
+| `type` | `Integer` | 否 | 类型：`0未完赛/1历史/2我的` |
+
+`ExamRankDTO`：
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `pageNum` | `Integer` | 否 | 页码 |
+| `pageSize` | `Integer` | 否 | 每页大小 |
+| `examId` | `Long` | 是 | 竞赛ID |
+
+#### 4.2.11 `ExamQueryVO` / `ExamRankVO`
+
+`ExamQueryVO`：
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `examId` | `Long` | 竞赛ID（序列化为字符串） |
+| `title` | `String` | 标题 |
+| `startTime` | `LocalDateTime` | 开始时间 |
+| `endTime` | `LocalDateTime` | 结束时间 |
+| `enter` | `boolean` | 是否已报名 |
+
+`ExamRankVO`：
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `userId` | `Long` | 用户ID |
+| `score` | `Integer` | 得分 |
+| `examRank` | `Integer` | 排名 |
+| `nickName` | `String` | 昵称（通过用户缓存补齐） |
+
+#### 4.2.12 `UserExamDTO`
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `examId` | `Long` | 是 | 竞赛ID |
+
+#### 4.2.13 `MessageTextVO`
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `messageTextId` | `Long` | 消息文本ID |
+| `title` | `String` | 标题 |
+| `content` | `String` | 内容 |
+
+#### 4.2.14 `OSSResult`
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `name` | `String` | 文件URL |
+| `success` | `boolean` | 是否上传成功 |
+
+### 4.3 管理端（`oj-system`）
+
+#### 4.3.1 `LoginDTO` / `SysUserDTO`
+
+`LoginDTO`：
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `userAccount` | `String` | 是 | 管理员账号 |
+| `password` | `String` | 是 | 管理员密码（长度 5~20） |
+
+`SysUserDTO`：
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `userAccount` | `String` | 是 | 管理员账号 |
+| `password` | `String` | 是 | 管理员密码（长度 5~20） |
+
+#### 4.3.2 `UserQueryDTO` / `UserStatusDTO` / `UserQueryVO`
+
+`UserQueryDTO`：
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `pageNum` | `Integer` | 否 | 页码 |
+| `pageSize` | `Integer` | 否 | 每页大小 |
+| `userId` | `Long` | 否 | 用户ID筛选 |
+| `nickName` | `String` | 否 | 昵称筛选 |
+
+`UserStatusDTO`：
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `userId` | `Long` | 是 | 用户ID |
+| `status` | `Integer` | 是 | 用户状态 |
+
+`UserQueryVO`：
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `userId` | `Long` | 用户ID（序列化为字符串） |
+| `nickName` | `String` | 昵称 |
+| `gender` | `Integer` | 性别 |
+| `phone` | `String` | 电话 |
+| `email` | `String` | 邮箱 |
+| `wechat` | `String` | 微信 |
+| `school` | `String` | 学校 |
+| `major` | `String` | 专业 |
+| `introduce` | `String` | 简介 |
+| `status` | `Integer` | 状态 |
+
+#### 4.3.3 `QuestionQueryDTO` / `QuestionAddDTO` / `QuestionEditDTO`
+
+`QuestionQueryDTO`：
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `pageNum` | `Integer` | 否 | 页码 |
+| `pageSize` | `Integer` | 否 | 每页大小 |
+| `title` | `String` | 否 | 标题筛选 |
+| `difficulty` | `Integer` | 否 | 难度筛选 |
+| `excludeIdSetStr` | `String` | 否 | 已选题目ID集合字符串（分隔符 `;`） |
+
+`QuestionAddDTO`：
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `title` | `String` | 是 | 标题 |
+| `content` | `String` | 是 | 内容 |
+| `difficulty` | `Integer` | 是 | 难度（1~3） |
+| `spaceLimit` | `Integer` | 是 | 空间限制（>=1） |
+| `timeLimit` | `Integer` | 是 | 时间限制（>=1） |
+| `questionCase` | `String` | 是 | 用例JSON字符串 |
+| `defaultCode` | `String` | 是 | 默认代码 |
+| `mainFunc` | `String` | 是 | 主函数代码 |
+
+`QuestionEditDTO`（额外含 `questionId`）：
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `questionId` | `Long` | 是 | 题目ID |
+| `title` | `String` | 是 | 标题 |
+| `content` | `String` | 是 | 内容 |
+| `difficulty` | `Integer` | 是 | 难度 |
+| `spaceLimit` | `Integer` | 是 | 空间限制 |
+| `timeLimit` | `Integer` | 是 | 时间限制 |
+| `questionCase` | `String` | 是 | 用例 |
+| `defaultCode` | `String` | 是 | 默认代码 |
+| `mainFunc` | `String` | 是 | 主函数 |
+
+#### 4.3.4 `ExamQueryDTO` / `ExamAddDTO` / `ExamEditDTO` / `ExamQuestionDTO`
+
+`ExamQueryDTO`：
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `pageNum` | `Integer` | 否 | 页码 |
+| `pageSize` | `Integer` | 否 | 每页大小 |
+| `startTime` | `LocalDateTime` | 否 | 开始时间筛选 |
+| `endTime` | `LocalDateTime` | 否 | 结束时间筛选 |
+| `title` | `String` | 否 | 标题筛选 |
+| `status` | `Integer` | 否 | 状态筛选（`0未发布/1已发布`） |
+
+`ExamAddDTO`：
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `title` | `String` | 是 | 标题 |
+| `startTime` | `LocalDateTime` | 是 | 开始时间 |
+| `endTime` | `LocalDateTime` | 是 | 结束时间 |
+
+`ExamEditDTO`（新增基础上 + `examId`）：
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `examId` | `Long` | 是 | 竞赛ID |
+
+`ExamQuestionDTO`：
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `examId` | `Long` | 是 | 竞赛ID |
+| `questionIds` | `LinkedHashSet<Long>` | 否 | 题目ID集合（保持插入顺序） |
+
+## 5. HTTP 接口文档（按服务划分）
+
+> 每个接口同时给出“服务直连URL”与“网关常见URL”。若你实际部署的网关路由不同，请以 Nacos 配置为准。
+
+## 5.1 用户端接口（`oj-friend`）
+
+### 5.1.1 用户认证与用户信息（`/user`）
+
+#### 5.1.1.1 发送邮箱验证码
+
+- 接口名称：发送验证码
+- 接口类型：HTTP `POST`
+- 所属服务：`oj-friend`
+- URL（服务直连）：`POST /user/code`
+- URL（网关常见）：`POST /friend/user/code`
+- 鉴权：通常白名单（需在网关 `security.ignore.whiteList` 放行）
+- 请求：`application/json` Body：`SendCodeDTO`
+- 示例：
+
 ```json
-{
-  "email": "user@example.com"
-}
+{ "email": "user@example.com" }
 ```
 
-**响应示例**：
+- 响应：`Result<Void>`
+
 ```json
-{
-  "code": 1000,
-  "msg": "验证码发送成功",
-  "data": null
-}
+{ "code": 1000, "msg": "操作成功", "data": null }
 ```
 
-**业务链路**：用户注册 → 发送验证码 → 验证并创建账户
+- 业务链路（上下游）：
+  - Redis：`email:code:<email>`、`code:counter:<email>`
+  - 邮件：`EmailService` 发送验证码
 
-**下游操作**：
-- Redis存储验证码（5分钟过期）
-- 调用邮件服务发送验证码
+#### 5.1.1.2 用户登录（邮箱 + 验证码）
 
----
+- 接口名称：用户登录
+- 接口类型：HTTP `POST`
+- 所属服务：`oj-friend`
+- URL（服务直连）：`POST /user/login`
+- URL（网关常见）：`POST /friend/user/login`
+- 鉴权：通常白名单
+- 请求：`application/json` Body：`UserLoginDTO`
+- 示例：
 
-### 2.2 用户登录
-
-**接口地址**：`POST /user/login`
-
-**接口说明**：使用邮箱+验证码登录，登录成功返回JWT令牌
-
-**是否需要token**：否（白名单）
-
-**请求参数**：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| email | String | 是 | 注册邮箱 |
-| code | String | 是 | 6位验证码 |
-
-**请求示例**：
 ```json
-{
-  "email": "user@example.com",
-  "code": "123456"
-}
+{ "email": "user@example.com", "code": "123456" }
 ```
 
-**响应示例**：
+- 响应：`Result<String>`（JWT）
+
 ```json
-{
-  "code": 1000,
-  "msg": "登录成功",
-  "data": {
-    "token": "eyJhbGciOiJIUzUxMiIsInppcCI6IkdaSVAifQ...",
-    "userInfo": {
-      "userId": 123456,
-      "username": "testuser",
-      "nickname": "测试用户",
-      "avatar": "https://xxx.com/avatar.png",
-      "identity": 1
-    }
-  }
-}
+{ "code": 1000, "msg": "操作成功", "data": "eyJhbGciOi..." }
 ```
 
-**业务链路**：验证验证码 → 查询用户 → 生成JWT → Redis存储令牌
+- 业务链路（上下游）：
+  - Redis：校验验证码并删除验证码 key
+  - MySQL：`tb_user`（新用户首次登录自动创建默认用户）
+  - Redis：写入登录态 `login:token:<userId>`
 
-**下游操作**：
-- Redis存储用户令牌（24小时TTL）
-- 记录登录日志
+#### 5.1.1.3 退出登录
 
----
+- 接口名称：退出登录
+- 接口类型：HTTP `DELETE`
+- 所属服务：`oj-friend`
+- URL（服务直连）：`DELETE /user/logout`
+- URL（网关常见）：`DELETE /friend/user/logout`
+- 鉴权：需要登录（普通用户）
+- 请求：Header `authentication: Bearer <jwt>`
+- 响应：`Result<Void>`
+- 业务链路：Redis 删除登录态 `login:token:<userId>`
 
-### 2.3 退出登录
+#### 5.1.1.4 获取当前登录用户简要信息（从 token/redis）
 
-**接口地址**：`DELETE /user/logout`
+- 接口名称：获取用户简要信息
+- 接口类型：HTTP `GET`
+- 所属服务：`oj-friend`
+- URL（服务直连）：`GET /user/info`
+- URL（网关常见）：`GET /friend/user/info`
+- 鉴权：需要登录（普通用户）
+- 响应：`Result<LoginUser>`
 
-**接口说明**：用户退出登录，使当前令牌失效
+#### 5.1.1.5 获取当前登录用户详细信息（用户档案）
 
-**是否需要token**：是
+- 接口名称：获取用户详细信息
+- 接口类型：HTTP `GET`
+- 所属服务：`oj-friend`
+- URL（服务直连）：`GET /user/detail`
+- URL（网关常见）：`GET /friend/user/detail`
+- 鉴权：需要登录（普通用户）
+- 响应：`Result<UserVO>`
+- 示例（结构示例）：
 
-**请求Header**：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| Authorization | String | 是 | Bearer Token |
-
-**响应示例**：
-```json
-{
-  "code": 1000,
-  "msg": "退出成功",
-  "data": null
-}
-```
-
-**业务链路**：解析Token → Redis删除令牌 → 清理ThreadLocal
-
----
-
-### 2.4 获取用户信息
-
-**接口地址**：`GET /user/info`
-
-**接口说明**：根据Token获取当前登录用户的简要信息
-
-**是否需要token**：是
-
-**响应示例**：
 ```json
 {
   "code": 1000,
   "msg": "操作成功",
   "data": {
-    "userId": 123456,
-    "username": "testuser",
-    "nickname": "测试用户",
-    "avatar": "https://xxx.com/avatar.png",
-    "identity": 1
-  }
-}
-```
-
----
-
-### 2.5 获取用户详情
-
-**接口地址**：`GET /user/detail`
-
-**接口说明**：获取当前登录用户的详细信息
-
-**是否需要token**：是
-
-**响应示例**：
-```json
-{
-  "code": 1000,
-  "msg": "操作成功",
-  "data": {
-    "userId": 123456,
-    "username": "testuser",
+    "userId": "123456789",
+    "nickName": "用户昵称",
+    "avatar": "https://...",
+    "gender": 1,
+    "phone": "13800000000",
     "email": "user@example.com",
-    "nickname": "测试用户",
-    "avatar": "https://xxx.com/avatar.png",
-    "identity": 1,
-    "status": 1,
-    "createTime": "2025-01-01 12:00:00"
+    "wechat": "wxid_xxx",
+    "school": "XX大学",
+    "major": "计算机科学",
+    "introduce": "个人简介",
+    "status": 1
   }
 }
 ```
 
----
+- 业务链路：
+  - Redis：`user:detail:<userId>`（命中/失效则 MySQL 刷新）
+  - MySQL：`tb_user`
 
-### 2.6 修改用户信息
+#### 5.1.1.6 修改用户信息
 
-**接口地址**：`PUT /user/edit`
+- 接口名称：修改用户信息
+- 接口类型：HTTP `PUT`
+- 所属服务：`oj-friend`
+- URL（服务直连）：`PUT /user/edit`
+- URL（网关常见）：`PUT /friend/user/edit`
+- 鉴权：需要登录（普通用户）
+- 请求：`application/json` Body：`UserEditDTO`
+- 响应：`Result<Void>`
+- 示例：
 
-**接口说明**：修改当前登录用户的昵称等信息
+请求：
 
-**是否需要token**：是
-
-**请求参数**：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| nickname | String | 否 | 新昵称（2-20字符） |
-
-**请求示例**：
 ```json
 {
-  "nickname": "新昵称"
+  "nickName": "新昵称",
+  "avatar": "https://...",
+  "school": "XX大学",
+  "major": "软件工程",
+  "phone": "13800000000",
+  "wechat": "wxid_xxx",
+  "introduce": "更新后的简介",
+  "gender": 1
 }
 ```
 
-**响应示例**：
+响应：
+
 ```json
 {
   "code": 1000,
-  "msg": "修改成功",
+  "msg": "操作成功",
   "data": null
 }
 ```
 
----
+- 业务链路：
+  - MySQL：更新 `tb_user`
+  - Redis：刷新 `user:detail:<userId>`；更新 `login:token:<userId>` 中 `LoginUser`（昵称/头像）
 
-### 2.7 修改用户头像
+#### 5.1.1.7 修改用户头像（仅头像）
 
-**接口地址**：`POST /user/avatar/update`
+- 接口名称：修改头像
+- 接口类型：HTTP `POST`
+- 所属服务：`oj-friend`
+- URL（服务直连）：`POST /user/avatar/update`
+- URL（网关常见）：`POST /friend/user/avatar/update`
+- 鉴权：需要登录（普通用户）
+- 请求：`application/json` Body：`UserEditDTO`（仅 `avatar` 字段）
+- 响应：`Result<Void>`
+- 示例：
 
-**接口说明**：更新用户头像URL
+请求：
 
-**是否需要token**：是
-
-**请求参数**：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| avatar | String | 是 | 头像URL地址 |
-
-**请求示例**：
 ```json
-{
-  "avatar": "https://xxx.com/new-avatar.png"
-}
+{ "avatar": "https://.../avatar.png" }
 ```
 
-**响应示例**：
+响应：
+
+```json
+{ "code": 1000, "msg": "操作成功", "data": null }
+```
+
+### 5.1.2 文件上传（`/file`）
+
+#### 5.1.2.1 上传文件（头像/资源）
+
+- 接口名称：上传文件
+- 接口类型：HTTP `POST`
+- 所属服务：`oj-friend`
+- URL（服务直连）：`POST /file/upload`
+- URL（网关常见）：`POST /friend/file/upload`
+- 鉴权：需要登录（普通用户）；服务侧会按 `userId` 做每日上传次数限制
+- 请求：`multipart/form-data`
+  - `file`: `MultipartFile`
+- 响应：`Result<OSSResult>`
+
+### 5.1.3 题目查询（`/question`）
+
+#### 5.1.3.1 题目列表（半登录/可匿名）
+
+- 接口名称：题目列表查询
+- 接口类型：HTTP `GET`
+- 所属服务：`oj-friend`
+- URL（服务直连）：`GET /question/semiLogin/list`
+- URL（网关常见）：`GET /friend/question/semiLogin/list`
+- 鉴权：通常白名单
+- 请求：Query：`QuestionQueryDTO`
+- 响应：`PageResult`（`rows` 为 `QuestionQueryVO`）
+- 示例（结构示例）：
+
 ```json
 {
+  "total": 2,
+  "rows": [
+    { "questionId": "1", "title": "两数之和", "difficulty": 1 },
+    { "questionId": "2", "title": "三数之和", "difficulty": 2 }
+  ],
   "code": 1000,
-  "msg": "头像修改成功",
-  "data": null
+  "msg": "操作成功"
 }
 ```
 
----
+- 业务链路：ES 查询；ES 无数据时从 MySQL `tb_question` 刷新到 ES
 
-## 三、题目模块 (/question)
+#### 5.1.3.2 题目详情
 
-### 3.1 题目列表查询
+- 接口名称：题目详情
+- 接口类型：HTTP `GET`
+- 所属服务：`oj-friend`
+- URL（服务直连）：`GET /question/detail`
+- URL（网关常见）：`GET /friend/question/detail`
+- 请求：Query：`questionId: Long`
+- 响应：`Result<QuestionVO>`
+- 示例（结构示例）：
 
-**接口地址**：`GET /question/semiLogin/list`
-
-**接口说明**：分页查询题目列表，支持关键词搜索和难度筛选
-
-**是否需要token**：否（白名单）
-
-**请求参数**（Query）：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| pageNum | Integer | 否 | 页码，默认1 |
-| pageSize | Integer | 否 | 每页数量，默认10 |
-| keyword | String | 否 | 标题/内容关键字 |
-| difficulty | Integer | 否 | 难度等级（1-5） |
-
-**响应示例**：
 ```json
 {
   "code": 1000,
   "msg": "操作成功",
   "data": {
-    "total": 100,
-    "rows": [
-      {
-        "questionId": 1,
-        "title": "两数之和",
-        "difficulty": 1,
-        "tags": ["简单", "数组"],
-        "submitCount": 1520,
-        "passRate": 0.65
-      }
-    ]
-  }
-}
-```
-
-**缓存策略**：
-- Redis缓存题目ID列表（5分钟TTL）
-- 首次请求从MySQL加载，后续从Redis读取
-
----
-
-### 3.2 题目详情查询
-
-**接口地址**：`GET /question/detail`
-
-**接口说明**：根据题目ID获取题目详细信息
-
-**是否需要token**：否
-
-**请求参数**（Query）：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| questionId | Long | 是 | 题目ID |
-
-**响应示例**：
-```json
-{
-  "code": 1000,
-  "msg": "操作成功",
-  "data": {
-    "questionId": 1,
+    "questionId": "1",
     "title": "两数之和",
-    "content": "给定一个整数数组 nums 和一个整数目标值 target...",
-    "inputFormat": "第一行一个整数n，第二行n个整数",
-    "outputFormat": "输出目标和的下标",
     "difficulty": 1,
-    "score": 100,
     "timeLimit": 1000,
-    "spaceLimit": 128,
-    "sampleInput": "3\\n2 7 11 15\\n9",
-    "sampleOutput": "0 1",
-    "tags": ["简单", "数组", "哈希表"],
-    "testCases": [
-      {"input": "3\\n2 7 11 15\\n9", "output": "0 1"},
-      {"input": "4\\n3 2 4 6\\n6", "output": "1 2"}
-    ]
+    "spaceLimit": 262144,
+    "content": "题目描述...",
+    "defaultCode": "public class Main { ... }"
   }
 }
 ```
 
----
+#### 5.1.3.3 上一题 / 下一题（题目顺序）
 
-### 3.3 上一题
+- 接口名称：题目切换（上一题/下一题）
+- 接口类型：HTTP `GET`
+- 所属服务：`oj-friend`
+- URL（服务直连）：`GET /question/pre`、`GET /question/next`
+- URL（网关常见）：`GET /friend/question/pre`、`GET /friend/question/next`
+- 请求：Query：`questionId: Long`
+- 响应：`Result<String>`
+- 示例：
+  - `GET /friend/question/pre?questionId=2`
 
-**接口地址**：`GET /question/pre`
-
-**接口说明**：获取当前题目的上一题ID
-
-**是否需要token**：否
-
-**请求参数**（Query）：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| questionId | Long | 是 | 当前题目ID |
-
-**响应示例**：
 ```json
-{
-  "code": 1000,
-  "msg": "操作成功",
-  "data": "123"
-}
+{ "code": 1000, "msg": "操作成功", "data": "1" }
 ```
 
-**业务说明**：若当前题为首题，返回错误码3101
+### 5.1.4 代码提交与判题触发（`/user/question`）
 
----
+#### 5.1.4.1 提交代码（同步判题 / Feign 调用）
 
-### 3.4 下一题
+- 接口名称：提交代码（同步判题）
+- 接口类型：HTTP `POST`
+- 所属服务：`oj-friend`（入口） + `oj-judge`（判题）
+- URL（服务直连）：`POST /user/question/submit`
+- URL（网关常见）：`POST /friend/user/question/submit`
+- 鉴权：
+  - 需要登录（普通用户）
+  - 限流：默认 `3 次 / 5 秒`（Redisson 令牌桶）
+  - 状态校验：用户需为正常状态
+- 请求：`application/json` Body：`UserSubmitDTO`
+- 响应：`Result<UserQuestionResultVO>`
+- 业务链路（上下游）：
+  - `oj-friend`：构造 `JudgeDTO` → Redis 写 15s 占位 submitKey → Feign 调用 `oj-judge`
+  - `oj-judge`：沙箱执行 → 判题 → MySQL `tb_user_submit` → Redis 写入结果与热题统计
 
-**接口地址**：`GET /question/next`
+#### 5.1.4.2 提交代码（异步判题 / RabbitMQ）
 
-**接口说明**：获取当前题目的下一题ID
+- 接口名称：提交代码（异步判题）
+- 接口类型：HTTP `POST`
+- URL（服务直连）：`POST /user/question/rabbit/submit`
+- URL（网关常见）：`POST /friend/user/question/rabbit/submit`
+- 鉴权：同 5.1.4.1
+- 请求：`application/json` Body：`UserSubmitDTO`
+- 响应：`Result<Void>`
+- 示例：
 
-**是否需要token**：否
+请求：
 
-**请求参数**（Query）：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| questionId | Long | 是 | 当前题目ID |
-
-**响应示例**：
 ```json
 {
-  "code": 1000,
-  "msg": "操作成功",
-  "data": "125"
-}
-```
-
----
-
-## 四、代码提交模块 (/user/question)
-
-### 4.1 同步提交代码
-
-**接口地址**：`POST /user/question/submit`
-
-**接口说明**：提交代码进行同步评测，实时返回评测结果
-
-**是否需要token**：是（需登录+限流+状态检查）
-
-**请求头**：
-| 参数 | 说明 |
-|-----|------|
-| Authorization | Bearer Token |
-
-**请求参数**：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| questionId | Long | 是 | 题目ID |
-| examId | Long | 否 | 竞赛ID（竞赛模式下必填） |
-| programType | Integer | 是 | 编程语言（1=Java） |
-| userCode | String | 是 | 用户代码 |
-
-**请求示例**：
-```json
-{
-  "questionId": 1,
   "examId": 100,
-  "programType": 1,
-  "userCode": "public class Solution { public int[] twoSum(int[] nums, int target) { ... } }"
+  "questionId": 1,
+  "programType": 0,
+  "userCode": "class Solution { ... }"
 }
 ```
 
-**响应示例**：
+响应：
+
+```json
+{ "code": 1000, "msg": "操作成功", "data": null }
+```
+
+#### 5.1.4.3 查询判题结果（轮询）
+
+- 接口名称：查询判题结果
+- 接口类型：HTTP `GET`
+- URL（服务直连）：`GET /user/question/exe/result`
+- URL（网关常见）：`GET /friend/user/question/exe/result`
+- 请求（Query）：`questionId`（必填）、`examId`（可选）、`currentTime`（可选，`yyyy/MM/dd HH:mm:ss`）
+- 响应：`Result<UserQuestionResultVO>`
+- 示例（判题中）：
+
 ```json
 {
   "code": 1000,
   "msg": "操作成功",
-  "data": {
-    "pass": 1,
-    "score": 100,
-    "exeMessage": "通过",
-    "userExeResultList": [
-      {
-        "input": "3\\n2 7 11 15\\n9",
-        "output": "0 1",
-        "exeOutput": "0 1",
-        "status": "AC"
-      },
-      {
-        "input": "4\\n3 2 4 6\\n6",
-        "output": "1 2",
-        "exeOutput": "1 2",
-        "status": "AC"
-      }
-    ],
-    "useMemory": 25600,
-    "useTime": 15
-  }
+  "data": { "pass": 3, "exeMessage": null, "userExeResultList": null, "score": null }
 }
 ```
 
-**限流规则**：
-- 10次/分钟/用户
-- 超过返回429错误
+#### 5.1.4.4 热题榜（按提交数）
 
-**业务链路**：
-1. 限流检查 → 2. 用户状态检查 → 3. 获取Docker容器 → 4. 编译执行 → 5. 结果判定 → 6. 保存记录 → 7. 更新热榜
+- 接口名称：热题榜
+- 接口类型：HTTP `GET`
+- URL（服务直连）：`GET /user/question/hot`
+- URL（网关常见）：`GET /friend/user/question/hot`
+- 请求（Query）：`top: Integer`
+- 响应：`Result<List<QuestionQueryVO>>`
+- 示例（结构示例）：
 
-**下游操作**：
-- 从容器池获取Docker容器
-- 编译Java代码
-- 执行测试用例
-- 更新Redis缓存（结果+排名）
-- 更新热榜（首次提交）
-
----
-
-### 4.2 异步提交代码（MQ）
-
-**接口地址**：`POST /user/question/rabbit/submit`
-
-**接口说明**：提交代码到消息队列异步评测，立即返回提交ID
-
-**是否需要token**：是（需登录+限流+状态检查）
-
-**请求参数**：同4.1
-
-**响应示例**：
-```json
-{
-  "code": 1000,
-  "msg": "提交成功",
-  "data": {
-    "submitId": 123456,
-    "message": "评测中，请稍后查询结果"
-  }
-}
-```
-
-**业务链路**：
-1. 限流检查 → 2. 用户状态检查 → 3. 发送MQ消息 → 4. 返回提交ID
-
-**下游操作**：
-- RabbitMQ发送评测任务
-- oj-judge服务异步消费消息
-
----
-
-### 4.3 获取评测结果
-
-**接口地址**：`GET /user/question/exe/result`
-
-**接口说明**：查询代码提交结果（用于异步提交后的结果查询）
-
-**是否需要token**：是
-
-**请求参数**（Query）：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| questionId | Long | 是 | 题目ID |
-| examId | Long | 否 | 竞赛ID |
-| currentTime | String | 是 | 提交时间（格式：yyyy-MM-dd HH:mm:ss） |
-
-**响应示例**：
-```json
-{
-  "code": 1000,
-  "msg": "操作成功",
-  "data": {
-    "pass": 1,
-    "score": 100,
-    "exeMessage": "通过",
-    "useTime": 15,
-    "useMemory": 25600
-  }
-}
-```
-
-**缓存策略**：
-- Redis缓存评测结果（1小时TTL）
-- key: `submit:{userId}:{questionId}`
-
----
-
-### 4.4 热榜查询
-
-**接口地址**：`GET /user/question/hot`
-
-**接口说明**：获取热门题目排行榜
-
-**是否需要token**：否
-
-**请求参数**（Query）：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| top | Integer | 否 | 返回数量，默认10 |
-
-**响应示例**：
 ```json
 {
   "code": 1000,
   "msg": "操作成功",
   "data": [
-    {
-      "questionId": 1,
-      "title": "两数之和",
-      "submitCount": 1520
-    },
-    {
-      "questionId": 2,
-      "title": "三数之和",
-      "submitCount": 1200
-    }
+    { "questionId": "1", "title": "两数之和", "difficulty": 1 },
+    { "questionId": "2", "title": "三数之和", "difficulty": 2 }
   ]
 }
 ```
 
-**数据来源**：Redis ZSet（score为提交次数）
+### 5.1.5 竞赛（`/exam` 与 `/user/exam`）
 
----
+#### 5.1.5.1 竞赛列表（DB）
 
-## 五、竞赛模块 (/exam)
+- 接口名称：竞赛列表（DB）
+- 接口类型：HTTP `GET`
+- URL（服务直连）：`GET /exam/semiLogin/list`
+- URL（网关常见）：`GET /friend/exam/semiLogin/list`
+- 请求：Query：`ExamQueryDTO`
+- 响应：`PageResult`（`rows` 为 `ExamQueryVO`）
+- 示例（结构示例）：
 
-### 5.1 竞赛列表查询
-
-**接口地址**：`GET /exam/semiLogin/list`
-
-**接口说明**：分页查询竞赛列表，支持按时间筛选
-
-**是否需要token**：否（白名单）
-
-**请求参数**（Query）：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| pageNum | Integer | 否 | 页码，默认1 |
-| pageSize | Integer | 否 | 每页数量，默认10 |
-| type | Integer | 否 | 类型：0=全部，1=进行中，2=已结束 |
-| startTime | DateTime | 否 | 开始时间筛选 |
-| endTime | DateTime | 否 | 结束时间筛选 |
-
-**响应示例**：
 ```json
 {
-  "code": 1000,
-  "msg": "操作成功",
-  "data": {
-    "total": 20,
-    "rows": [
-      {
-        "examId": 100,
-        "title": "2025春季算法竞赛",
-        "description": "春季编程大赛",
-        "startTime": "2025-01-15 09:00:00",
-        "endTime": "2025-01-15 12:00:00",
-        "duration": 180,
-        "status": 2,
-        "participantCount": 500
-      }
-    ]
-  }
-}
-```
-
----
-
-### 5.2 竞赛排名查询
-
-**接口地址**：`GET /exam/semiLogin/rank/list`
-
-**接口说明**：分页查询竞赛排行榜
-
-**是否需要token**：否
-
-**请求参数**（Query）：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| examId | Long | 是 | 竞赛ID |
-| pageNum | Integer | 否 | 页码，默认1 |
-| pageSize | Integer | 否 | 每页数量，默认10 |
-
-**响应示例**：
-```json
-{
-  "code": 1000,
-  "msg": "操作成功",
-  "data": {
-    "total": 200,
-    "rows": [
-      {
-        "rank": 1,
-        "userId": 123,
-        "nickname": "算法大师",
-        "avatar": "https://xxx.com/1.png",
-        "totalScore": 500,
-        "submitCount": 5,
-        "passCount": 5
-      },
-      {
-        "rank": 2,
-        "userId": 456,
-        "nickname": "编程新手",
-        "avatar": "https://xxx.com/2.png",
-        "totalScore": 480,
-        "submitCount": 6,
-        "passCount": 4
-      }
-    ]
-  }
-}
-```
-
-**缓存策略**：
-- Redis List缓存排名（实时刷新）
-- 分页查询O(1)时间复杂度
-
----
-
-### 5.3 获取竞赛首题
-
-**接口地址**：`GET /exam/getFirstQuestion`
-
-**接口说明**：获取竞赛的第一道题目ID
-
-**是否需要token**：是
-
-**请求参数**（Query）：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| examId | Long | 是 | 竞赛ID |
-
-**响应示例**：
-```json
-{
-  "code": 1000,
-  "msg": "操作成功",
-  "data": "1"
-}
-```
-
----
-
-### 5.4 竞赛切换题目
-
-**接口地址**：
-- `GET /exam/pre` - 上一题
-- `GET /exam/next` - 下一题
-
-**是否需要token**：是
-
-**请求参数**（Query）：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| examId | Long | 是 | 竞赛ID |
-| questionId | Long | 是 | 当前题目ID |
-
-**响应示例**：
-```json
-{
-  "code": 1000,
-  "msg": "操作成功",
-  "data": "2"
-}
-```
-
----
-
-## 六、用户参赛模块 (/user/exam)
-
-### 6.1 竞赛报名
-
-**接口地址**：`POST /user/exam/enter`
-
-**接口说明**：用户报名参加竞赛
-
-**是否需要token**：是（需登录+状态正常）
-
-**请求参数**：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| examId | Long | 是 | 竞赛ID |
-
-**请求示例**：
-```json
-{
-  "examId": 100
-}
-```
-
-**响应示例**：
-```json
-{
-  "code": 1000,
-  "msg": "报名成功",
-  "data": {
-    "examId": 100,
-    "joinTime": "2025-01-14 20:00:00",
-    "examTitle": "2025春季算法竞赛"
-  }
-}
-```
-
-**业务校验**：
-- 竞赛必须处于已发布状态
-- 用户不能重复报名
-- 竞赛必须在报名时间内
-
----
-
-### 6.2 我的竞赛列表
-
-**接口地址**：`GET /user/exam/list`
-
-**接口说明**：查询当前用户报名的竞赛列表
-
-**是否需要token**：是
-
-**请求参数**（Query）：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| pageNum | Integer | 否 | 页码 |
-| pageSize | Integer | 否 | 每页数量 |
-| type | Integer | 否 | 类型：1=进行中，2=已结束 |
-
-**响应示例**：
-```json
-{
-  "code": 1000,
-  "msg": "操作成功",
-  "data": {
-    "total": 5,
-    "rows": [
-      {
-        "examId": 100,
-        "title": "2025春季算法竞赛",
-        "startTime": "2025-01-15 09:00:00",
-        "endTime": "2025-01-15 12:00:00",
-        "status": 1,
-        "totalScore": 300,
-        "rank": 15
-      }
-    ]
-  }
-}
-```
-
----
-
-## 七、消息通知模块 (/user/message)
-
-### 7.1 我的消息列表
-
-**接口地址**：`GET /user/message/list`
-
-**接口说明**：分页查询当前用户的消息通知
-
-**是否需要token**：是
-
-**请求参数**（Query）：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| pageNum | Integer | 否 | 页码 |
-| pageSize | Integer | 否 | 每页数量 |
-
-**响应示例**：
-```json
-{
-  "code": 1000,
-  "msg": "操作成功",
-  "data": {
-    "total": 10,
-    "rows": [
-      {
-        "messageId": 1,
-        "type": 1,
-        "title": "竞赛结果通知",
-        "content": "恭喜您在2025春季算法竞赛中排名第15位",
-        "isRead": 0,
-        "createTime": "2025-01-15 13:00:00"
-      }
-    ]
-  }
-}
-```
-
-**消息类型**：
-- 1: 系统通知
-- 2: 竞赛结果
-- 3: 题目讨论回复
-
----
-
-## 八、管理后台接口 (/sys)
-
-> 以下接口需要管理员身份访问，路径前缀 `/sys`
-
-### 8.1 题目管理
-
-#### 8.1.1 题目列表
-
-**接口地址**：`GET /sys/question/list`
-
-**请求参数**（Query）：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| pageNum | Integer | 否 | 页码 |
-| pageSize | Integer | 否 | 每页数量 |
-| difficulty | Integer | 否 | 难度筛选 |
-| keyword | String | 否 | 关键字搜索 |
-
-**响应示例**：
-```json
-{
-  "code": 1000,
-  "msg": "操作成功",
-  "data": {
-    "total": 100,
-    "rows": [
-      {
-        "questionId": 1,
-        "title": "两数之和",
-        "difficulty": 1,
-        "status": 1,
-        "createTime": "2025-01-01 12:00:00"
-      }
-    ]
-  }
-}
-```
-
-#### 8.1.2 新增题目
-
-**接口地址**：`POST /sys/question/add`
-
-**请求参数**：
-
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| title | String | 是 | 标题 |
-| content | String | 是 | 题目描述 |
-| inputFormat | String | 是 | 输入格式 |
-| outputFormat | String | 是 | 输出格式 |
-| difficulty | Integer | 是 | 难度（1-5） |
-| score | Integer | 否 | 分值，默认100 |
-| timeLimit | Integer | 否 | 时间限制(ms)，默认1000 |
-| spaceLimit | Integer | 否 | 空间限制(MB)，默认128 |
-| sampleInput | String | 是 | 样例输入 |
-| sampleOutput | String | 是 | 样例输出 |
-| testCases | JSON | 是 | 测试用例数组 |
-| tags | JSON | 是 | 标签数组 |
-
-**请求示例**：
-```json
-{
-  "title": "两数之和",
-  "content": "给定一个整数数组...",
-  "inputFormat": "第一行n，第二行数组",
-  "outputFormat": "输出下标",
-  "difficulty": 1,
-  "score": 100,
-  "timeLimit": 1000,
-  "spaceLimit": 128,
-  "sampleInput": "3\\n2 7 11 15\\n9",
-  "sampleOutput": "0 1",
-  "testCases": [
-    {"input": "3\\n2 7 11 15\\n9", "output": "0 1"},
-    {"input": "4\\n3 2 4 6\\n6", "output": "1 2"}
+  "total": 1,
+  "rows": [
+    {
+      "examId": "100",
+      "title": "2026 春季算法竞赛",
+      "startTime": "2026-01-20 09:00:00",
+      "endTime": "2026-01-20 12:00:00",
+      "enter": false
+    }
   ],
-  "tags": ["简单", "数组"]
+  "code": 1000,
+  "msg": "操作成功"
 }
 ```
 
-#### 8.1.3 编辑题目
+#### 5.1.5.2 竞赛列表（Redis 两级缓存）
 
-**接口地址**：`PUT /sys/question/edit`
+- 接口名称：竞赛列表（Redis）
+- 接口类型：HTTP `GET`
+- URL（服务直连）：`GET /exam/semiLogin/redis/list`
+- URL（网关常见）：`GET /friend/exam/semiLogin/redis/list`
+- 请求：Query：`ExamQueryDTO`
+- 响应：`PageResult`（结构同 5.1.5.1）
 
-**请求参数**：同新增，需额外传入questionId
+#### 5.1.5.3 竞赛首题 / 切换题目（上一题/下一题）
 
-#### 8.1.4 删除题目
+- 接口名称：竞赛题目导航
+- 接口类型：HTTP `GET`
+- URL（服务直连）：`GET /exam/getFirstQuestion`、`GET /exam/pre`、`GET /exam/next`
+- URL（网关常见）：`GET /friend/exam/getFirstQuestion`、`GET /friend/exam/pre`、`GET /friend/exam/next`
+- 请求：`examId`（必填），`questionId`（切换必填）
+- 响应：`Result<String>`
 
-**接口地址**：`DELETE /sys/question/delete`
+#### 5.1.5.4 竞赛排行榜
 
-**请求参数**（Query）：
+- 接口名称：竞赛排行榜
+- 接口类型：HTTP `GET`
+- URL（服务直连）：`GET /exam/semiLogin/rank/list`
+- URL（网关常见）：`GET /friend/exam/semiLogin/rank/list`
+- 请求：Query：`ExamRankDTO`
+- 响应：`PageResult`（`rows` 为 `ExamRankVO`）
 
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| questionId | Long | 是 | 题目ID |
+#### 5.1.5.5 竞赛报名
 
----
+- 接口名称：竞赛报名
+- 接口类型：HTTP `POST`
+- URL（服务直连）：`POST /user/exam/enter`
+- URL（网关常见）：`POST /friend/user/exam/enter`
+- 请求：`application/json` Body：`UserExamDTO`
+- 响应：`Result<Void>`
+- 示例：
 
-### 8.2 竞赛管理
+```json
+{ "examId": 100 }
+```
 
-#### 8.2.1 竞赛列表
+#### 5.1.5.6 我的竞赛列表
 
-**接口地址**：`GET /sys/exam/list`
+- 接口名称：我的竞赛列表
+- 接口类型：HTTP `GET`
+- URL（服务直连）：`GET /user/exam/list`
+- URL（网关常见）：`GET /friend/user/exam/list`
+- 请求：Query：`ExamQueryDTO`（建议 `type=2`）
+- 响应：`PageResult`（`rows` 为 `ExamQueryVO`）
 
-#### 8.2.2 新增竞赛
+### 5.1.6 消息通知（`/user/message`）
 
-**接口地址**：`POST /sys/exam/add`
+#### 5.1.6.1 我的消息列表
 
-**请求参数**：
+- 接口名称：我的消息列表
+- 接口类型：HTTP `GET`
+- URL（服务直连）：`GET /user/message/list`
+- URL（网关常见）：`GET /friend/user/message/list`
+- 请求：Query：`pageNum/pageSize`
+- 响应：`PageResult`（`rows` 为 `MessageTextVO`）
 
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| title | String | 是 | 竞赛标题 |
-| description | String | 否 | 竞赛描述 |
-| startTime | DateTime | 是 | 开始时间 |
-| endTime | DateTime | 是 | 结束时间 |
-| duration | Integer | 是 | 持续时间（分钟） |
+## 5.2 管理端接口（`oj-system`）
 
-#### 8.2.3 竞赛题目管理
+### 5.2.1 管理员登录与会话（`/sys/user`）
 
-**接口地址**：`POST /sys/exam/question/add`
+#### 5.2.1.1 管理员登录
 
-**请求参数**：
+- 接口名称：管理员登录
+- 接口类型：HTTP `POST`
+- URL（服务直连）：`POST /sys/user/login`
+- URL（网关常见）：`POST /system/sys/user/login`
+- 请求：`application/json` Body：`LoginDTO`
+- 响应：`Result<String>`（JWT）
 
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| examId | Long | 是 | 竞赛ID |
-| questionId | Long | 是 | 题目ID |
-| questionOrder | Integer | 是 | 题目顺序 |
-| questionScore | Integer | 是 | 题目分值 |
+#### 5.2.1.2 新增管理员
 
-#### 8.2.4 发布竞赛
+- 接口名称：新增管理员
+- 接口类型：HTTP `POST`
+- URL（服务直连）：`POST /sys/user/add`
+- URL（网关常见）：`POST /system/sys/user/add`
+- 请求：`application/json` Body：`SysUserDTO`
+- 响应：`Result<Void>`
 
-**接口地址**：`PUT /sys/exam/publish`
+#### 5.2.1.3 获取管理员简要信息 / 退出登录
 
-**请求参数**（Query）：
+- `GET /sys/user/info`：`Result<LoginUser>`
+- `DELETE /sys/user/logout`：`Result<Void>`
 
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| examId | Long | 是 | 竞赛ID |
+#### 5.2.1.4 其他接口（未实现）
 
-#### 8.2.5 撤销发布
+以下接口在当前代码中返回 `null`（尚未实现）：
 
-**接口地址**：`PUT /sys/exam/publish/cancel`
+- `DELETE /sys/user/delete/{userId}`
+- `PUT /sys/user/update`
+- `GET /sys/user/detail`
 
----
+### 5.2.2 C端用户管理（`/sys/cuser`）
 
-### 8.3 用户管理
+- `GET /sys/cuser/list`：`PageResult`（`rows` 为 `UserQueryVO`）
+- `PUT /sys/cuser/status/update`：`Result<Void>`（更新用户状态，并删除 `user:detail:<userId>` 缓存）
 
-#### 8.3.1 用户列表
+### 5.2.3 题库管理（`/sys/question`）
 
-**接口地址**：`GET /sys/cuser/list`
+- `GET /sys/question/list`：`PageResult`
+- `POST /sys/question/add`：`Result<Void>`（DB+ES+Redis 刷新）
+- `GET /sys/question/detail`：`Result<QuestionVO>`
+- `PUT /sys/question/edit`：`Result<Void>`（DB+ES 同步）
+- `DELETE /sys/question/delete`：`Result<Void>`（DB+ES 删除 + `question:list` 移除）
 
-#### 8.3.2 修改用户状态
+### 5.2.4 竞赛管理（`/sys/exam`）
 
-**接口地址**：`PUT /sys/cuser/status/update`
+- `GET /sys/exam/list`：`PageResult`
+- `POST /sys/exam/add`：`Result<ExamAddVO>`
+- `POST /sys/exam/question/add`：`Result<Void>`（写 `tb_exam_question`）
+- `GET /sys/exam/detail`：`Result<ExamVO>`
+- `PUT /sys/exam/edit`：`Result<Void>`
+- `DELETE /sys/exam/question/delete`：`Result<Void>`
+- `DELETE /sys/exam/delete`：`Result<Void>`
+- `PUT /sys/exam/publish`：`Result<Void>`（发布并写入用户端竞赛缓存）
+- `PUT /sys/exam/publish/cancel`：`Result<Void>`（撤销发布并删除相关缓存）
 
-**请求参数**：
+## 5.3 判题服务接口（`oj-judge`，内部调用）
 
-| 参数 | 类型 | 必填 | 说明 |
-|-----|------|-----|------|
-| userId | Long | 是 | 用户ID |
-| status | Integer | 是 | 状态：1正常，2禁用 |
+### 5.3.1 执行判题（Java）
 
----
+- 接口名称：判题执行
+- 接口类型：HTTP `POST`
+- URL（服务直连）：`POST /judge/doJudgeJavaCode`
+- 请求：`application/json` Body：`JudgeDTO`
+- 响应：`Result<UserQuestionResultVO>`
 
-## 九、接口索引
+## 6. 内部接口（Feign / MQ / Job）
 
-| 模块 | 接口地址 | 方法 | 说明 | 是否需要Token |
-|-----|---------|------|------|--------------|
-| 用户 | `/user/code` | POST | 发送验证码 | 否 |
-| 用户 | `/user/login` | POST | 用户登录 | 否 |
-| 用户 | `/user/logout` | DELETE | 退出登录 | 是 |
-| 用户 | `/user/info` | GET | 获取用户信息 | 是 |
-| 用户 | `/user/detail` | GET | 获取用户详情 | 是 |
-| 用户 | `/user/edit` | PUT | 修改用户信息 | 是 |
-| 题目 | `/question/semiLogin/list` | GET | 题目列表 | 否 |
-| 题目 | `/question/detail` | GET | 题目详情 | 否 |
-| 提交 | `/user/question/submit` | POST | 同步提交代码 | 是 |
-| 提交 | `/user/question/rabbit/submit` | POST | 异步提交代码 | 是 |
-| 提交 | `/user/question/exe/result` | GET | 获取评测结果 | 是 |
-| 提交 | `/user/question/hot` | GET | 热榜查询 | 否 |
-| 竞赛 | `/exam/semiLogin/list` | GET | 竞赛列表 | 否 |
-| 竞赛 | `/exam/semiLogin/rank/list` | GET | 竞赛排名 | 否 |
-| 参赛 | `/user/exam/enter` | POST | 竞赛报名 | 是 |
-| 参赛 | `/user/exam/list` | GET | 我的竞赛 | 是 |
-| 消息 | `/user/message/list` | GET | 我的消息 | 是 |
-| 管理 | `/sys/question/list` | GET | 题目列表 | 是(管理员) |
-| 管理 | `/sys/question/add` | POST | 新增题目 | 是(管理员) |
-| 管理 | `/sys/exam/list` | GET | 竞赛列表 | 是(管理员) |
-| 管理 | `/sys/exam/publish` | PUT | 发布竞赛 | 是(管理员) |
-| 管理 | `/sys/cuser/list` | GET | 用户列表 | 是(管理员) |
+### 6.1 Feign
 
----
+- `RemoteJudgeService`：`POST /judge/doJudgeJavaCode`（`oj-friend` → `oj-judge`）
 
-*文档更新时间：2026-01-14*
+### 6.2 RabbitMQ
+
+| 队列 | 消息体 | 生产者 | 消费者 | 说明 |
+|---|---|---|---|---|
+| `oj-work-queue` | `JudgeDTO` | `oj-friend` | `oj-judge` | 异步判题 |
+| `message-cache-refresh-queue` | `Long userId` | `oj-friend` | `oj-friend` | 消息缓存异步刷新 |
+| `exam-rank-cache-refresh-queue` | `Long examId` | `oj-friend` | `oj-friend` | 排行榜缓存异步刷新 |
+| `exam-cache-refresh-queue` | - | - | - | 仅声明，当前未发现生产/消费实现 |
+
+### 6.3 XXL-Job（`oj-job`）
+
+- `examListOrganizeHandler`：定时刷新 `exam:unfinished:list`、`exam:history:list`、`exam:detail:<examId>`
+- `examResultHandler`：统计竞赛成绩与排名，写入消息表与 Redis，并刷新 `exam:rank:list:<examId>`
+
